@@ -2,19 +2,105 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type Class struct {
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	Day       int        `json:"day"`
+	Period    int        `json:"period"`
+	Color     string     `json:"color"`
+	Style     string     `json:"style"`
+	Teacher   string     `json:"teacher"`
+	Credit    *int       `json:"credit"`
+	Memo      *string    `json:"memo"`
+	RoomOrURL string     `json:"roomOrUrl"`
+	Timetable *Timetable `json:"timetable"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type ClassTime struct {
+	ID        string     `json:"id"`
+	Period    int        `json:"period"`
+	StartTime *string    `json:"startTime"`
+	EndTime   *string    `json:"endTime"`
+	Timetable *Timetable `json:"timetable"`
+}
+
+type DeleteUser struct {
+	Password string `json:"password"`
+}
+
+type Login struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type NewClass struct {
+	Name      string `json:"name"`
+	Day       int    `json:"day"`
+	Period    int    `json:"period"`
+	Style     string `json:"style"`
+	Teacher   string `json:"teacher"`
+	RoomOrURL string `json:"roomOrUrl"`
+}
+
+type NewTimetable struct {
+	Name string `json:"name"`
+}
+
+type NewUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type RefreshTokenInput struct {
+	Token string `json:"token"`
+}
+
+type Timetable struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Days      int    `json:"days"`
+	Periods   int    `json:"periods"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	IsDefault bool   `json:"isDefault"`
+	User      *User  `json:"user"`
+}
+
+type UpdateClass struct {
+	Name      *string `json:"name"`
+	Day       *int    `json:"day"`
+	Period    *int    `json:"period"`
+	Color     *string `json:"color"`
+	Style     *string `json:"style"`
+	Teacher   *string `json:"teacher"`
+	Credit    *int    `json:"credit"`
+	Memo      *string `json:"memo"`
+	RoomOrURL *string `json:"roomOrUrl"`
+}
+
+type UpdateClassTime struct {
+	Period    int     `json:"period"`
+	StartTime *string `json:"startTime"`
+	EndTime   *string `json:"endTime"`
+}
+
+type UpdateTimetable struct {
+	Name      *string `json:"name"`
+	Days      *int    `json:"days"`
+	Periods   *int    `json:"periods"`
+	IDDefault *bool   `json:"idDefault"`
+}
+
+type UpdateUser struct {
+	Email    *string `json:"email"`
+	Password *string `json:"password"`
+	School   *string `json:"school"`
+	Name     *string `json:"name"`
 }
 
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID     string  `json:"id"`
+	Email  string  `json:"email"`
+	School *string `json:"school"`
+	Name   *string `json:"name"`
 }

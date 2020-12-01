@@ -1,28 +1,129 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
-
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
+type User {
+    id: ID!
+    email: String!
+    school: String
+    name: String
 }
 
-type User {
-  id: ID!
-  name: String!
+type Timetable {
+    id: ID!
+    name: String!
+    days: Int!
+    periods: Int!
+    createdAt: String! # todo datetime型はどうすればいいのか？
+    updatedAt: String!
+    isDefault: Boolean!
+    user: User!
+}
+
+type ClassTime {
+    id: ID!
+    period: Int!
+    startTime: String  # todo time型
+    endTime: String
+    timetable: Timetable!
+}
+
+type Class {
+    id: ID!
+    name: String!
+    day: Int!
+    period: Int!
+    color: String!  # 背景色
+    style: String!  # 授業形態
+    teacher: String!
+    credit: Int  # 単位数
+    memo: String
+    roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
+    timetable: Timetable!
 }
 
 type Query {
-  todos: [Todo!]!
+    user(input: String!): User! # tokenを投げてログインユーザー情報収録
+    timetable: Timetable! # ログインユーザーのデフォルトの時間割取得
+    timetables: [Timetable!]! # ログインユーザーの時間割の一覧取得
+    classtimes(input: ID!): [ClassTime!]! # 指定した時間割のコマ時間の一覧取得
+    classes(input: ID!): [Class!]! # 指定した時間割の授業一覧取得
 }
 
-input NewTodo {
-  text: String!
-  userId: String!
+input NewUser {
+    email: String!
+    password: String!
+}
+
+input UpdateUser {
+    email: String
+    password: String
+    school: String
+    name: String
+}
+
+input DeleteUser {
+    password: String!
+}
+
+input Login {
+    email: String!
+    password: String!
+}
+
+input RefreshTokenInput{
+    token: String!
+}
+
+input NewTimetable {
+    name: String!
+}
+
+input UpdateTimetable {
+    name: String
+    days: Int
+    periods: Int
+    idDefault: Boolean
+}
+
+input NewClass {
+    name: String!
+    day: Int!
+    period: Int!
+    style: String!
+    teacher: String!
+    roomOrUrl: String!
+}
+
+input UpdateClass {
+    name: String
+    day: Int
+    period: Int
+    color: String
+    style: String
+    teacher: String
+    credit: Int
+    memo: String
+    roomOrUrl: String
+}
+
+input UpdateClassTime {
+    period: Int!
+    startTime: String
+    endTime: String
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+    createUser(input: NewUser!): String! # return token
+    updateUser(input: UpdateUser): String! # return token
+    deleteUser(input: DeleteUser): Boolean! #　todo ユーザー削除後の返り値がどれがいいか不明
+
+    login(input: Login!): String! # return token
+    refreshToken(input: RefreshTokenInput!): String! # return token
+
+    createTimetable(input: NewTimetable!): Timetable!  # 時間割作成と同時にコマ時間テーブルも作成
+    updateTimetable(input: UpdateTimetable!): Timetable! # コマ数増えたらコマ時間テーブルも作成
+    deleteTimetable(input: ID!): Boolean! # コマ時間テーブルも削除
+
+    createClass(input: NewClass!): Class!
+    updateClass(input: UpdateClass!): Class!
+    deleteClass(input: ID!): Boolean!
+
+    updateClassTime(input: UpdateClassTime!): ClassTime!
 }

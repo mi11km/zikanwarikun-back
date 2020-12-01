@@ -9,11 +9,12 @@
 - 科目詳細表示
 - 科目毎のメモ
 - zoomが自動で開く
+
 - 科目毎のtodo
 - sns機能・学校科目ごとに掲示板相談
 
 # 使用技術
-- Golang(gqlgen, gorm)
+- Golang(gqlgen, gorm, golang-migrate, gin)
 - GraphQL
 - Docker
 - MySQL

@@ -14,7 +14,15 @@
 - sns機能・学校科目ごとに掲示板相談
 
 # 使用技術
-- Golang(gqlgen, gorm, golang-migrate, gin)
+- Golang(gqlgen, golang-migrate, gorm, gin)
 - GraphQL
 - Docker
 - MySQL
+
+
+## ローカルのdockerでDBを立ててテーブル作成
+rootディレクトリで以下のコマンドを実行
+```
+docker-compose up -d
+migrate -database mysql://user:password@/zikanwarikun -path internal/db/migrations/mysql up
+```

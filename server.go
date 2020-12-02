@@ -9,8 +9,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/mi11km/zikanwarikun-back/graph"
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
+	database "github.com/mi11km/zikanwarikun-back/internal/db"
 )
 
+// todo configファイルから読み込む
 const defaultPort = "8080"
 
 func main() {
@@ -18,6 +20,14 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	database.Init()
+	database.Migrate()
+	defer func() {
+		if err := database.Db.Close(); err != nil {
+			log.Fatalf("action=close db, err=%s", err)
+		}
+	}()
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 

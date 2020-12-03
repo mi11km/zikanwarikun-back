@@ -20,9 +20,9 @@
 - MySQL
 
 
-## ローカルのdockerでDBを立ててテーブル作成
+## ローカルで実行方法
 rootディレクトリで以下のコマンドを実行
 ```
 docker-compose up -d
-migrate -database mysql://user:password@/zikanwarikun -path internal/db/migrations/mysql up
+make run
 ```

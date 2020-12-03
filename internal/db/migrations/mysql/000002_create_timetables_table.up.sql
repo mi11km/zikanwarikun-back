@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS Timetables
     is_default    BOOLEAN      NOT NULL,
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    user_id       INT          NOT NULL,
+    user_id       VARCHAR(36)  NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users (id),
     PRIMARY KEY (id)
 )

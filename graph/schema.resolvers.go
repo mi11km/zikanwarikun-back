@@ -9,10 +9,21 @@ import (
 
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
 	"github.com/mi11km/zikanwarikun-back/graph/model"
+	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
+	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
 )
 
+// todo emailの形式かどうかのバリデーションしてない
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	var user users.User
+	user.Email = input.Email
+	user.Password = input.Password
+	user.Create()
+	token, err := jwt.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input *model.UpdateUser) (string, error) {
@@ -24,11 +35,30 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, input *model.DeleteUs
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	var user users.User
+	user.Email = input.Email
+	user.Password = input.Password
+	correct := user.Authenticate()
+	if !correct {
+		return "", &users.WrongUsernameOrPasswordError{}
+	}
+	token, err := jwt.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	id, err := jwt.ParseToken(input.Token)
+	if err != nil {
+		return "", fmt.Errorf("access denied")
+	}
+	token, err := jwt.GenerateToken(id)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func (r *mutationResolver) CreateTimetable(ctx context.Context, input model.NewTimetable) (*model.Timetable, error) {

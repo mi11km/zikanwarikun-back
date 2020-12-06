@@ -17,6 +17,7 @@ type User struct {
 	Name     string `json:"name"`
 }
 
+// Create create a user in database from given email and password
 func (user *User) Create() {
 	statement, err := database.Db.Prepare("INSERT INTO Users(id, email, password) VALUES (?,?,?)")
 	if err != nil {
@@ -34,7 +35,7 @@ func (user *User) Create() {
 	log.Println("action=create user, status=success")
 }
 
-// check if a user exists in database by given email and password
+// Authenticate check if a user exists in database by given email and password
 func (user *User) Authenticate() bool {
 	statement, err := database.Db.Prepare("select id, password from Users WHERE email = ?")
 	if err != nil {
@@ -81,7 +82,7 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-//CheckPassword hash compares raw password with it's hashed values
+//CheckPasswordHash compares raw password with it's hashed values
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil

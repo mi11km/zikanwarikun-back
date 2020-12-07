@@ -58,7 +58,7 @@ func (user *User) Authenticate() bool {
 
 //GetUserById get user info(email, school, name) by given id
 func GetUserById(id string) (User, error) {
-	statement, err := database.Db.Prepare("select email, school, name from Users WHERE id = ?")
+	statement, err := database.Db.Prepare("select email, IFNULL(school,''), IFNULL(name,'') from Users WHERE id = ?")
 	if err != nil {
 		log.Printf("action=prepare select user statement by id, err=%s", err)
 	}
@@ -70,7 +70,7 @@ func GetUserById(id string) (User, error) {
 		if err != sql.ErrNoRows {
 			log.Printf("action=no rows from Users, err=%s", err)
 		}
-		return User{}, err  // todo エラー時に空の構造体を返すのでいいかわからない
+		return User{}, err // todo エラー時に空の構造体を返すのでいいかわからない
 	}
 	user.ID = id
 	return user, nil

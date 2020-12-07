@@ -2,19 +2,21 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/mi11km/zikanwarikun-back/config"
 )
 
-// todo configファイルから読み込む
-const (
-	driver    = "mysql"
-	dns       = "user:password@tcp(localhost)/zikanwarikun?charset=utf8&parseTime=true"
-	sourceURL = "file://internal/db/migrations/mysql"
+var (
+	driver = config.Cfg.DB.Driver
+	dns    = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true",
+		config.Cfg.DB.User, config.Cfg.DB.Password, config.Cfg.DB.Address, config.Cfg.DB.Name)
+	sourceURL = config.Cfg.DB.SourceURL
 )
 
 var Db *sql.DB

@@ -6,13 +6,11 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/mi11km/zikanwarikun-back/config"
 )
 
 // secret key being used to sign tokens
-// todo decide secret key from env variable?
-var (
-	SecretKey = []byte("CLKVHA|2MxH9~t6grxYB3JdB")
-)
+var secretKey = []byte(config.Cfg.Server.JwtSecretKey)
 
 // GenerateToken generates a jwt token and assign a id to it's claims and return it
 func GenerateToken(id string) (string, error) {
@@ -21,7 +19,7 @@ func GenerateToken(id string) (string, error) {
 	/* Set token claims */
 	claims["id"] = id
 	claims["exp"] = time.Now().Add(time.Hour * 5).Unix() // Expiration is 5 hours
-	tokenString, err := token.SignedString(SecretKey)
+	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
 		log.Printf("action=Error in Generating key, err=%s", err)
 		return "", err
@@ -36,7 +34,7 @@ func ParseToken(tokenStr string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return SecretKey, nil
+		return secretKey, nil
 	})
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		id := claims["id"].(string)

@@ -1,8 +1,5 @@
 test:
-	go test ./...
+	go test -v ./...
 
 run:
-	go run server.go
-
-migrate:
-	migrate -database mysql://user:password@/zikanwarikun -path internal/db/migrations/mysql up
+	docker-compose up -d

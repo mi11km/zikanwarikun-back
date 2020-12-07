@@ -3,7 +3,7 @@ package timetables
 import "github.com/mi11km/zikanwarikun-back/internal/db/models/users"
 
 type Timetable struct {
-	ID           string      `json:"id"`
+	ID           int         `json:"id"`
 	Name         string      `json:"name"`
 	ClassDays    int         `json:"class_days"`
 	ClassPeriods int         `json:"class_periods"`

@@ -15,6 +15,7 @@ type Config struct {
 		SourceURL string
 	}
 	Server struct {
+		Env          string
 		Port         string
 		JwtSecretKey string
 	}
@@ -40,9 +41,11 @@ func init() {
 			SourceURL: GetEnv("MIGRATE_SOURCE_FILE"),
 		},
 		Server: struct {
+			Env          string
 			Port         string
 			JwtSecretKey string
 		}{
+			Env:          GetEnv("ENV"),
 			Port:         GetEnv("PORT"),
 			JwtSecretKey: GetEnv("JWT_SECRET_KEY"),
 		},

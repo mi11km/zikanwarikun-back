@@ -30,8 +30,9 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type", "Authorization Content-Type"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            config.Cfg.Server.Env == "development",
 	}).Handler)
 	router.Use(auth.Middleware())
 

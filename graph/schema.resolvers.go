@@ -16,11 +16,12 @@ import (
 	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
 )
 
-// todo emailの形式かどうかのバリデーションしてない
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
 	var user users.User
 	user.Email = input.Email
 	user.Password = input.Password
+	user.School = input.School
+	user.Name = input.Name
 	user.Create()
 	token, err := jwt.GenerateToken(user.ID)
 	if err != nil {
@@ -106,6 +107,18 @@ func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (b
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return &model.ClassTime{}, fmt.Errorf("access denied")
+	}
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateClass(ctx context.Context, input model.NewClass) (*model.Class, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
@@ -130,15 +143,7 @@ func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool,
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
-	user := auth.ForContext(ctx)
-	if user == nil {
-		return &model.ClassTime{}, fmt.Errorf("access denied")
-	}
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) User(ctx context.Context, input string) (*model.User, error) {
+func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
 		return &model.User{}, fmt.Errorf("access denied")
@@ -155,22 +160,6 @@ func (r *queryResolver) Timetable(ctx context.Context) (*model.Timetable, error)
 }
 
 func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, error) {
-	user := auth.ForContext(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("access denied")
-	}
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Classtimes(ctx context.Context, input string) ([]*model.ClassTime, error) {
-	user := auth.ForContext(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("access denied")
-	}
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) Classes(ctx context.Context, input string) ([]*model.Class, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("access denied")

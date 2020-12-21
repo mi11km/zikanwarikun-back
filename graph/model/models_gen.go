@@ -34,21 +34,31 @@ type Login struct {
 }
 
 type NewClass struct {
-	Name      string `json:"name"`
-	Day       int    `json:"day"`
-	Period    int    `json:"period"`
-	Style     string `json:"style"`
-	Teacher   string `json:"teacher"`
-	RoomOrURL string `json:"roomOrUrl"`
+	Name      string  `json:"name"`
+	Day       int     `json:"day"`
+	Period    int     `json:"period"`
+	Style     *string `json:"style"`
+	Teacher   *string `json:"teacher"`
+	RoomOrURL *string `json:"roomOrUrl"`
+}
+
+type NewClassTime struct {
+	Period    int     `json:"period"`
+	StartTime *string `json:"startTime"`
+	EndTime   *string `json:"endTime"`
 }
 
 type NewTimetable struct {
-	Name string `json:"name"`
+	Name    string `json:"name"`
+	Days    int    `json:"days"`
+	Periods int    `json:"periods"`
 }
 
 type NewUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Name     string `json:"name"`
+	School   string `json:"school"`
 }
 
 type RefreshTokenInput struct {
@@ -56,20 +66,31 @@ type RefreshTokenInput struct {
 }
 
 type Timetable struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Days      int    `json:"days"`
-	Periods   int    `json:"periods"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
-	IsDefault bool   `json:"isDefault"`
-	User      *User  `json:"user"`
+	ID         string              `json:"id"`
+	Name       string              `json:"name"`
+	Days       int                 `json:"days"`
+	Periods    int                 `json:"periods"`
+	CreatedAt  string              `json:"createdAt"`
+	UpdatedAt  string              `json:"updatedAt"`
+	IsDefault  bool                `json:"isDefault"`
+	Classes    []*Class            `json:"classes"`
+	Classtimes []*ClassTime        `json:"classtimes"`
+	RowData    []*TimetableRowData `json:"rowData"`
+	User       *User               `json:"user"`
+}
+
+type TimetableRowData struct {
+	Periods   int        `json:"periods"`
+	Classes   []*Class   `json:"Classes"`
+	StartTime string     `json:"startTime"`
+	EndTime   string     `json:"endTime"`
+	Timetable *Timetable `json:"timetable"`
 }
 
 type UpdateClass struct {
 	Name      *string `json:"name"`
-	Day       *int    `json:"day"`
-	Period    *int    `json:"period"`
+	Day       int     `json:"day"`
+	Period    int     `json:"period"`
 	Color     *string `json:"color"`
 	Style     *string `json:"style"`
 	Teacher   *string `json:"teacher"`
@@ -99,8 +120,9 @@ type UpdateUser struct {
 }
 
 type User struct {
-	ID     string  `json:"id"`
-	Email  string  `json:"email"`
-	School *string `json:"school"`
-	Name   *string `json:"name"`
+	ID         string       `json:"id"`
+	Email      string       `json:"email"`
+	School     *string      `json:"school"`
+	Name       *string      `json:"name"`
+	Timetables []*Timetable `json:"timetables"`
 }

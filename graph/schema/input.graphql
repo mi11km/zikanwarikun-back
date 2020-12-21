@@ -10,6 +10,7 @@ input UpdateUser {
     password: String
     school: String
     name: String
+    currentPassword: String
 }
 
 input DeleteUser {

@@ -6,7 +6,7 @@ type Query {
 
 type Mutation {
     createUser(input: NewUser!): String!              # return token
-    updateUser(input: UpdateUser): String!            # return token
+    updateUser(input: UpdateUser): String!            # return token, passwordのupdateにはcurrentPasswordが必須
     deleteUser(input: DeleteUser): Boolean!
     login(input: Login!): String!                     # return token
     refreshToken(input: RefreshTokenInput!): String!  # return token

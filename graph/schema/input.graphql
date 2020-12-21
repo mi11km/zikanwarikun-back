@@ -1,0 +1,75 @@
+input NewUser {
+    email: String!
+    password: String!
+    name: String!
+    school: String!
+}
+
+input UpdateUser {
+    email: String
+    password: String
+    school: String
+    name: String
+}
+
+input DeleteUser {
+    password: String!
+}
+
+input Login {
+    email: String!
+    password: String!
+}
+
+input RefreshTokenInput{
+    token: String!
+}
+
+input NewTimetable {
+    name: String!
+    days: Int!
+    periods: Int!
+}
+
+input UpdateTimetable {
+    name: String
+    days: Int
+    periods: Int
+    idDefault: Boolean
+}
+
+input NewClassTime {
+    period: Int!
+    startTime: String
+    endTime: String
+}
+
+input UpdateClassTime {
+    period: Int!
+    startTime: String
+    endTime: String
+}
+
+input NewClass {
+    name: String!
+    day: Int!
+    period: Int!
+    style: String
+    teacher: String
+    roomOrUrl: String
+}
+
+input UpdateClass {
+    name: String
+    day: Int!
+    period: Int!
+    color: String
+    style: String
+    teacher: String
+    credit: Int
+    memo: String
+    roomOrUrl: String
+}
+
+
+

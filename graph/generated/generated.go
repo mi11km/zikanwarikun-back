@@ -67,6 +67,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateClass     func(childComplexity int, input model.NewClass) int
+		CreateClassTime func(childComplexity int, input model.NewClassTime) int
 		CreateTimetable func(childComplexity int, input model.NewTimetable) int
 		CreateUser      func(childComplexity int, input model.NewUser) int
 		DeleteClass     func(childComplexity int, input string) int
@@ -81,29 +82,39 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Classes    func(childComplexity int, input string) int
-		Classtimes func(childComplexity int, input string) int
 		Timetable  func(childComplexity int) int
 		Timetables func(childComplexity int) int
-		User       func(childComplexity int, input string) int
+		User       func(childComplexity int) int
 	}
 
 	Timetable struct {
-		CreatedAt func(childComplexity int) int
-		Days      func(childComplexity int) int
-		ID        func(childComplexity int) int
-		IsDefault func(childComplexity int) int
-		Name      func(childComplexity int) int
+		Classes    func(childComplexity int) int
+		Classtimes func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		Days       func(childComplexity int) int
+		ID         func(childComplexity int) int
+		IsDefault  func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Periods    func(childComplexity int) int
+		RowData    func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
+		User       func(childComplexity int) int
+	}
+
+	TimetableRowData struct {
+		Classes   func(childComplexity int) int
+		EndTime   func(childComplexity int) int
 		Periods   func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
-		User      func(childComplexity int) int
+		StartTime func(childComplexity int) int
+		Timetable func(childComplexity int) int
 	}
 
 	User struct {
-		Email  func(childComplexity int) int
-		ID     func(childComplexity int) int
-		Name   func(childComplexity int) int
-		School func(childComplexity int) int
+		Email      func(childComplexity int) int
+		ID         func(childComplexity int) int
+		Name       func(childComplexity int) int
+		School     func(childComplexity int) int
+		Timetables func(childComplexity int) int
 	}
 }
 
@@ -116,17 +127,16 @@ type MutationResolver interface {
 	CreateTimetable(ctx context.Context, input model.NewTimetable) (*model.Timetable, error)
 	UpdateTimetable(ctx context.Context, input model.UpdateTimetable) (*model.Timetable, error)
 	DeleteTimetable(ctx context.Context, input string) (bool, error)
+	CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error)
+	UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error)
 	CreateClass(ctx context.Context, input model.NewClass) (*model.Class, error)
 	UpdateClass(ctx context.Context, input model.UpdateClass) (*model.Class, error)
 	DeleteClass(ctx context.Context, input string) (bool, error)
-	UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error)
 }
 type QueryResolver interface {
-	User(ctx context.Context, input string) (*model.User, error)
+	User(ctx context.Context) (*model.User, error)
 	Timetable(ctx context.Context) (*model.Timetable, error)
 	Timetables(ctx context.Context) ([]*model.Timetable, error)
-	Classtimes(ctx context.Context, input string) ([]*model.ClassTime, error)
-	Classes(ctx context.Context, input string) ([]*model.Class, error)
 }
 
 type executableSchema struct {
@@ -268,6 +278,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateClass(childComplexity, args["input"].(model.NewClass)), true
 
+	case "Mutation.createClassTime":
+		if e.complexity.Mutation.CreateClassTime == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createClassTime_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateClassTime(childComplexity, args["input"].(model.NewClassTime)), true
+
 	case "Mutation.createTimetable":
 		if e.complexity.Mutation.CreateTimetable == nil {
 			break
@@ -400,30 +422,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(*model.UpdateUser)), true
 
-	case "Query.classes":
-		if e.complexity.Query.Classes == nil {
-			break
-		}
-
-		args, err := ec.field_Query_classes_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Classes(childComplexity, args["input"].(string)), true
-
-	case "Query.classtimes":
-		if e.complexity.Query.Classtimes == nil {
-			break
-		}
-
-		args, err := ec.field_Query_classtimes_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Classtimes(childComplexity, args["input"].(string)), true
-
 	case "Query.timetable":
 		if e.complexity.Query.Timetable == nil {
 			break
@@ -443,12 +441,21 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
+		return e.complexity.Query.User(childComplexity), true
+
+	case "Timetable.classes":
+		if e.complexity.Timetable.Classes == nil {
+			break
 		}
 
-		return e.complexity.Query.User(childComplexity, args["input"].(string)), true
+		return e.complexity.Timetable.Classes(childComplexity), true
+
+	case "Timetable.classtimes":
+		if e.complexity.Timetable.Classtimes == nil {
+			break
+		}
+
+		return e.complexity.Timetable.Classtimes(childComplexity), true
 
 	case "Timetable.createdAt":
 		if e.complexity.Timetable.CreatedAt == nil {
@@ -492,6 +499,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Timetable.Periods(childComplexity), true
 
+	case "Timetable.rowData":
+		if e.complexity.Timetable.RowData == nil {
+			break
+		}
+
+		return e.complexity.Timetable.RowData(childComplexity), true
+
 	case "Timetable.updatedAt":
 		if e.complexity.Timetable.UpdatedAt == nil {
 			break
@@ -505,6 +519,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Timetable.User(childComplexity), true
+
+	case "TimetableRowData.Classes":
+		if e.complexity.TimetableRowData.Classes == nil {
+			break
+		}
+
+		return e.complexity.TimetableRowData.Classes(childComplexity), true
+
+	case "TimetableRowData.endTime":
+		if e.complexity.TimetableRowData.EndTime == nil {
+			break
+		}
+
+		return e.complexity.TimetableRowData.EndTime(childComplexity), true
+
+	case "TimetableRowData.periods":
+		if e.complexity.TimetableRowData.Periods == nil {
+			break
+		}
+
+		return e.complexity.TimetableRowData.Periods(childComplexity), true
+
+	case "TimetableRowData.startTime":
+		if e.complexity.TimetableRowData.StartTime == nil {
+			break
+		}
+
+		return e.complexity.TimetableRowData.StartTime(childComplexity), true
+
+	case "TimetableRowData.timetable":
+		if e.complexity.TimetableRowData.Timetable == nil {
+			break
+		}
+
+		return e.complexity.TimetableRowData.Timetable(childComplexity), true
 
 	case "User.email":
 		if e.complexity.User.Email == nil {
@@ -533,6 +582,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.School(childComplexity), true
+
+	case "User.timetables":
+		if e.complexity.User.Timetables == nil {
+			break
+		}
+
+		return e.complexity.User.Timetables(childComplexity), true
 
 	}
 	return 0, false
@@ -598,57 +654,11 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `type User {
-    id: ID!
-    email: String!
-    school: String
-    name: String
-}
-
-type Timetable {
-    id: ID!
-    name: String!
-    days: Int!
-    periods: Int!
-    createdAt: String! # todo datetime型はどうすればいいのか？
-    updatedAt: String!
-    isDefault: Boolean!
-    user: User!
-}
-
-type ClassTime {
-    id: ID!
-    period: Int!
-    startTime: String  # todo time型
-    endTime: String
-    timetable: Timetable!
-}
-
-type Class {
-    id: ID!
-    name: String!
-    day: Int!
-    period: Int!
-    color: String!  # 背景色
-    style: String!  # 授業形態
-    teacher: String!
-    credit: Int  # 単位数
-    memo: String
-    roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
-    timetable: Timetable!
-}
-
-type Query {
-    user(input: String!): User! # tokenを投げてログインユーザー情報収録
-    timetable: Timetable! # ログインユーザーのデフォルトの時間割取得
-    timetables: [Timetable!]! # ログインユーザーの時間割の一覧取得
-    classtimes(input: ID!): [ClassTime!]! # 指定した時間割のコマ時間の一覧取得
-    classes(input: ID!): [Class!]! # 指定した時間割の授業一覧取得
-}
-
-input NewUser {
+	{Name: "graph/schema/input.graphql", Input: `input NewUser {
     email: String!
     password: String!
+    name: String!
+    school: String!
 }
 
 input UpdateUser {
@@ -673,6 +683,8 @@ input RefreshTokenInput{
 
 input NewTimetable {
     name: String!
+    days: Int!
+    periods: Int!
 }
 
 input UpdateTimetable {
@@ -682,25 +694,10 @@ input UpdateTimetable {
     idDefault: Boolean
 }
 
-input NewClass {
-    name: String!
-    day: Int!
+input NewClassTime {
     period: Int!
-    style: String!
-    teacher: String!
-    roomOrUrl: String!
-}
-
-input UpdateClass {
-    name: String
-    day: Int
-    period: Int
-    color: String
-    style: String
-    teacher: String
-    credit: Int
-    memo: String
-    roomOrUrl: String
+    startTime: String
+    endTime: String
 }
 
 input UpdateClassTime {
@@ -709,23 +706,106 @@ input UpdateClassTime {
     endTime: String
 }
 
+input NewClass {
+    name: String!
+    day: Int!
+    period: Int!
+    style: String
+    teacher: String
+    roomOrUrl: String
+}
+
+input UpdateClass {
+    name: String
+    day: Int!
+    period: Int!
+    color: String
+    style: String
+    teacher: String
+    credit: Int
+    memo: String
+    roomOrUrl: String
+}
+
+
+
+`, BuiltIn: false},
+	{Name: "graph/schema/schema.graphql", Input: `type Query {
+    user: User!                           # tokenからログインユーザー情報収録
+    timetable: Timetable!                 # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
+    timetables: [Timetable!]!             # ログインユーザーの時間割の一覧取得
+}
+
 type Mutation {
-    createUser(input: NewUser!): String! # return token
-    updateUser(input: UpdateUser): String! # return token
-    deleteUser(input: DeleteUser): Boolean! #　todo ユーザー削除後の返り値がどれがいいか不明
+    createUser(input: NewUser!): String!              # return token
+    updateUser(input: UpdateUser): String!            # return token
+    deleteUser(input: DeleteUser): Boolean!
+    login(input: Login!): String!                     # return token
+    refreshToken(input: RefreshTokenInput!): String!  # return token
 
-    login(input: Login!): String! # return token
-    refreshToken(input: RefreshTokenInput!): String! # return token
+    createTimetable(input: NewTimetable!): Timetable!
+    updateTimetable(input: UpdateTimetable!): Timetable!
+    deleteTimetable(input: ID!): Boolean!
 
-    createTimetable(input: NewTimetable!): Timetable!  # 時間割作成と同時にコマ時間テーブルも作成
-    updateTimetable(input: UpdateTimetable!): Timetable! # コマ数増えたらコマ時間テーブルも作成
-    deleteTimetable(input: ID!): Boolean! # コマ時間テーブルも削除
+    createClassTime(input: NewClassTime!): ClassTime!
+    updateClassTime(input: UpdateClassTime!): ClassTime!
 
     createClass(input: NewClass!): Class!
     updateClass(input: UpdateClass!): Class!
     deleteClass(input: ID!): Boolean!
+}
 
-    updateClassTime(input: UpdateClassTime!): ClassTime!
+#　todo delete処理後の返り値を何にするべきか`, BuiltIn: false},
+	{Name: "graph/schema/type.graphql", Input: `type User {
+    id: ID!
+    email: String!
+    school: String
+    name: String
+    timetables: [Timetable]
+}
+
+type Timetable {
+    id: ID!
+    name: String!
+    days: Int!           # 平日、平日＋土、毎日
+    periods: Int!        # 時限数
+    createdAt: String!   # todo datetime型はどうすればいいのか？
+    updatedAt: String!
+    isDefault: Boolean!
+    classes: [Class]
+    classtimes: [ClassTime]
+    rowData: [TimetableRowData]
+    user: User!
+}
+
+type ClassTime {
+    id: ID!
+    period: Int!        # 時限
+    startTime: String   # todo time型 ex) 9:00
+    endTime: String
+    timetable: Timetable!
+}
+
+type Class {
+    id: ID!
+    name: String!
+    day: Int!         # 曜日
+    period: Int!      # 時限
+    color: String!    # 背景色
+    style: String!    # 授業形態
+    teacher: String!
+    credit: Int       # 単位数
+    memo: String
+    roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
+    timetable: Timetable!
+}
+
+type TimetableRowData {
+    periods: Int!
+    Classes: [Class]
+    startTime: String!
+    endTime: String!
+    timetable: Timetable!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -733,6 +813,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createClassTime_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewClassTime
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewClassTime2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐNewClassTime(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createClass_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -926,51 +1021,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_classes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_classtimes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -1896,6 +1946,90 @@ func (ec *executionContext) _Mutation_deleteTimetable(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createClassTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createClassTime_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateClassTime(rctx, args["input"].(model.NewClassTime))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ClassTime)
+	fc.Result = res
+	return ec.marshalNClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateClassTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateClassTime_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateClassTime(rctx, args["input"].(model.UpdateClassTime))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ClassTime)
+	fc.Result = res
+	return ec.marshalNClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createClass(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2022,48 +2156,6 @@ func (ec *executionContext) _Mutation_deleteClass(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateClassTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateClassTime_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateClassTime(rctx, args["input"].(model.UpdateClassTime))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.ClassTime)
-	fc.Result = res
-	return ec.marshalNClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2080,16 +2172,9 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, args["input"].(string))
+		return ec.resolvers.Query().User(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2174,90 +2259,6 @@ func (ec *executionContext) _Query_timetables(ctx context.Context, field graphql
 	res := resTmp.([]*model.Timetable)
 	fc.Result = res
 	return ec.marshalNTimetable2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetableᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_classtimes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_classtimes_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Classtimes(rctx, args["input"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.ClassTime)
-	fc.Result = res
-	return ec.marshalNClassTime2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTimeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_classes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_classes_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Classes(rctx, args["input"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Class)
-	fc.Result = res
-	return ec.marshalNClass2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2576,6 +2577,102 @@ func (ec *executionContext) _Timetable_isDefault(ctx context.Context, field grap
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Timetable_classes(ctx context.Context, field graphql.CollectedField, obj *model.Timetable) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Timetable",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Classes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Class)
+	fc.Result = res
+	return ec.marshalOClass2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Timetable_classtimes(ctx context.Context, field graphql.CollectedField, obj *model.Timetable) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Timetable",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Classtimes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ClassTime)
+	fc.Result = res
+	return ec.marshalOClassTime2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Timetable_rowData(ctx context.Context, field graphql.CollectedField, obj *model.Timetable) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Timetable",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RowData, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.TimetableRowData)
+	fc.Result = res
+	return ec.marshalOTimetableRowData2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetableRowData(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Timetable_user(ctx context.Context, field graphql.CollectedField, obj *model.Timetable) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2609,6 +2706,178 @@ func (ec *executionContext) _Timetable_user(ctx context.Context, field graphql.C
 	res := resTmp.(*model.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimetableRowData_periods(ctx context.Context, field graphql.CollectedField, obj *model.TimetableRowData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimetableRowData",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Periods, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimetableRowData_Classes(ctx context.Context, field graphql.CollectedField, obj *model.TimetableRowData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimetableRowData",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Classes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Class)
+	fc.Result = res
+	return ec.marshalOClass2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimetableRowData_startTime(ctx context.Context, field graphql.CollectedField, obj *model.TimetableRowData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimetableRowData",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimetableRowData_endTime(ctx context.Context, field graphql.CollectedField, obj *model.TimetableRowData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimetableRowData",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndTime, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimetableRowData_timetable(ctx context.Context, field graphql.CollectedField, obj *model.TimetableRowData) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TimetableRowData",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timetable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Timetable)
+	fc.Result = res
+	return ec.marshalNTimetable2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetable(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -2743,6 +3012,38 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_timetables(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timetables, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Timetable)
+	fc.Result = res
+	return ec.marshalOTimetable2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetable(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3914,7 +4215,7 @@ func (ec *executionContext) unmarshalInputNewClass(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("style"))
-			it.Style, err = ec.unmarshalNString2string(ctx, v)
+			it.Style, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3922,7 +4223,7 @@ func (ec *executionContext) unmarshalInputNewClass(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("teacher"))
-			it.Teacher, err = ec.unmarshalNString2string(ctx, v)
+			it.Teacher, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3930,7 +4231,43 @@ func (ec *executionContext) unmarshalInputNewClass(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomOrUrl"))
-			it.RoomOrURL, err = ec.unmarshalNString2string(ctx, v)
+			it.RoomOrURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewClassTime(ctx context.Context, obj interface{}) (model.NewClassTime, error) {
+	var it model.NewClassTime
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "period":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
+			it.Period, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "startTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
+			it.StartTime, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "endTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
+			it.EndTime, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3951,6 +4288,22 @@ func (ec *executionContext) unmarshalInputNewTimetable(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "days":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("days"))
+			it.Days, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "periods":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("periods"))
+			it.Periods, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3979,6 +4332,22 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "school":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("school"))
+			it.School, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4026,7 +4395,7 @@ func (ec *executionContext) unmarshalInputUpdateClass(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("day"))
-			it.Day, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Day, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4034,7 +4403,7 @@ func (ec *executionContext) unmarshalInputUpdateClass(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
-			it.Period, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Period, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4391,6 +4760,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createClassTime":
+			out.Values[i] = ec._Mutation_createClassTime(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateClassTime":
+			out.Values[i] = ec._Mutation_updateClassTime(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createClass":
 			out.Values[i] = ec._Mutation_createClass(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -4403,11 +4782,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteClass":
 			out.Values[i] = ec._Mutation_deleteClass(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updateClassTime":
-			out.Values[i] = ec._Mutation_updateClassTime(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4479,34 +4853,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "classtimes":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_classtimes(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "classes":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_classes(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -4568,8 +4914,58 @@ func (ec *executionContext) _Timetable(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "classes":
+			out.Values[i] = ec._Timetable_classes(ctx, field, obj)
+		case "classtimes":
+			out.Values[i] = ec._Timetable_classtimes(ctx, field, obj)
+		case "rowData":
+			out.Values[i] = ec._Timetable_rowData(ctx, field, obj)
 		case "user":
 			out.Values[i] = ec._Timetable_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var timetableRowDataImplementors = []string{"TimetableRowData"}
+
+func (ec *executionContext) _TimetableRowData(ctx context.Context, sel ast.SelectionSet, obj *model.TimetableRowData) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, timetableRowDataImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TimetableRowData")
+		case "periods":
+			out.Values[i] = ec._TimetableRowData_periods(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Classes":
+			out.Values[i] = ec._TimetableRowData_Classes(ctx, field, obj)
+		case "startTime":
+			out.Values[i] = ec._TimetableRowData_startTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "endTime":
+			out.Values[i] = ec._TimetableRowData_endTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "timetable":
+			out.Values[i] = ec._TimetableRowData_timetable(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4609,6 +5005,8 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_school(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
+		case "timetables":
+			out.Values[i] = ec._User_timetables(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4884,43 +5282,6 @@ func (ec *executionContext) marshalNClass2githubᚗcomᚋmi11kmᚋzikanwarikun�
 	return ec._Class(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNClass2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Class) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNClass2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalNClass2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx context.Context, sel ast.SelectionSet, v *model.Class) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -4933,43 +5294,6 @@ func (ec *executionContext) marshalNClass2ᚖgithubᚗcomᚋmi11kmᚋzikanwariku
 
 func (ec *executionContext) marshalNClassTime2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx context.Context, sel ast.SelectionSet, v model.ClassTime) graphql.Marshaler {
 	return ec._ClassTime(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNClassTime2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTimeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ClassTime) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalNClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx context.Context, sel ast.SelectionSet, v *model.ClassTime) graphql.Marshaler {
@@ -5019,6 +5343,11 @@ func (ec *executionContext) unmarshalNLogin2githubᚗcomᚋmi11kmᚋzikanwarikun
 
 func (ec *executionContext) unmarshalNNewClass2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐNewClass(ctx context.Context, v interface{}) (model.NewClass, error) {
 	res, err := ec.unmarshalInputNewClass(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewClassTime2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐNewClassTime(ctx context.Context, v interface{}) (model.NewClassTime, error) {
+	res, err := ec.unmarshalInputNewClassTime(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -5385,6 +5714,100 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
+func (ec *executionContext) marshalOClass2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx context.Context, sel ast.SelectionSet, v []*model.Class) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOClass2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOClass2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClass(ctx context.Context, sel ast.SelectionSet, v *model.Class) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Class(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOClassTime2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx context.Context, sel ast.SelectionSet, v []*model.ClassTime) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐClassTime(ctx context.Context, sel ast.SelectionSet, v *model.ClassTime) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ClassTime(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalODeleteUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐDeleteUser(ctx context.Context, v interface{}) (*model.DeleteUser, error) {
 	if v == nil {
 		return nil, nil
@@ -5430,6 +5853,100 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) marshalOTimetable2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetable(ctx context.Context, sel ast.SelectionSet, v []*model.Timetable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTimetable2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetable(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOTimetable2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetable(ctx context.Context, sel ast.SelectionSet, v *model.Timetable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Timetable(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOTimetableRowData2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetableRowData(ctx context.Context, sel ast.SelectionSet, v []*model.TimetableRowData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTimetableRowData2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetableRowData(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOTimetableRowData2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetableRowData(ctx context.Context, sel ast.SelectionSet, v *model.TimetableRowData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TimetableRowData(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOUpdateUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUpdateUser(ctx context.Context, v interface{}) (*model.UpdateUser, error) {

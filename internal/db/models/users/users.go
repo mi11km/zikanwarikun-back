@@ -19,7 +19,7 @@ type User struct {
 
 // Create create a user in database from given email and password
 func (user *User) Create() {
-	statement, err := database.Db.Prepare("INSERT INTO Users(id, email, password) VALUES (?,?,?)")
+	statement, err := database.Db.Prepare("INSERT INTO Users(id, email, password, school, name) VALUES (?,?,?,?,?)")
 	if err != nil {
 		log.Printf("action=prepare create user statement, err=%s", err)
 	}
@@ -28,7 +28,7 @@ func (user *User) Create() {
 		log.Printf("action=generate hashpassword, err=%s", err)
 	}
 	user.ID = uuid.New().String() // todo uuidのDBへの保存方法の最適化(現在は36文字のVARCHAR)
-	_, err = statement.Exec(user.ID, user.Email, hashedPassword)
+	_, err = statement.Exec(user.ID, user.Email, hashedPassword, user.School, user.Name)
 	if err != nil {
 		log.Printf("action=create user, err=%s", err)
 	}

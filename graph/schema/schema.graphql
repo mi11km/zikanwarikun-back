@@ -1,0 +1,26 @@
+type Query {
+    user: User!                           # tokenからログインユーザー情報収録
+    timetable: Timetable!                 # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
+    timetables: [Timetable!]!             # ログインユーザーの時間割の一覧取得
+}
+
+type Mutation {
+    createUser(input: NewUser!): String!              # return token
+    updateUser(input: UpdateUser): String!            # return token
+    deleteUser(input: DeleteUser): Boolean!
+    login(input: Login!): String!                     # return token
+    refreshToken(input: RefreshTokenInput!): String!  # return token
+
+    createTimetable(input: NewTimetable!): Timetable!
+    updateTimetable(input: UpdateTimetable!): Timetable!
+    deleteTimetable(input: ID!): Boolean!
+
+    createClassTime(input: NewClassTime!): ClassTime!
+    updateClassTime(input: UpdateClassTime!): ClassTime!
+
+    createClass(input: NewClass!): Class!
+    updateClass(input: UpdateClass!): Class!
+    deleteClass(input: ID!): Boolean!
+}
+
+#　todo delete処理後の返り値を何にするべきか

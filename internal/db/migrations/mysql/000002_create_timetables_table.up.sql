@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS Timetables
+CREATE TABLE IF NOT EXISTS timetables
 (
     id            INT          NOT NULL UNIQUE AUTO_INCREMENT,
     name          VARCHAR(255) NOT NULL,
@@ -8,6 +8,6 @@ CREATE TABLE IF NOT EXISTS Timetables
     created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     user_id       VARCHAR(36)  NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES Users (id),
+    FOREIGN KEY (user_id) REFERENCES users (id),
     PRIMARY KEY (id)
 )

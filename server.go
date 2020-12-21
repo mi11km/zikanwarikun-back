@@ -20,8 +20,12 @@ func main() {
 	database.Init()
 	database.Migrate()
 	defer func() {
-		if err := database.Db.Close(); err != nil {
-			log.Fatalf("action=close db, err=%s", err)
+		db, err := database.Db.DB()
+		if err != nil {
+			log.Fatalf("action=failed to get *sql.DB, err=%s", err)
+		}
+		if err := db.Close(); err != nil {
+			log.Fatalf("action=failed to close db, err=%s", err)
 		}
 	}()
 

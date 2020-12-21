@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	database "github.com/mi11km/zikanwarikun-back/internal/db"
 	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
 	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
 )
@@ -34,11 +35,13 @@ func Middleware() func(http.Handler) http.Handler {
 			}
 
 			// create user and check if user exists in db
-			user, err := users.GetUserById(id)
-			if err != nil {
+			var user users.User
+			result := database.Db.Select("id", "email", "school", "name").Where("id = ?", id).First(&user)
+			if result.Error != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
+
 			// put it in context
 			ctx := context.WithValue(r.Context(), userCtxKey, &user)
 

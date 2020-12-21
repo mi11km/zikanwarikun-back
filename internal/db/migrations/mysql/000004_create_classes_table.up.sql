@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS Classes
+CREATE TABLE IF NOT EXISTS classes
 (
     id           INT          NOT NULL UNIQUE AUTO_INCREMENT,
     name         VARCHAR(255) NOT NULL,
@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS Classes
     room_or_url  VARCHAR(128) NOT NULL,
     memo         TEXT,
     timetable_id INT          NOT NULL,
-    FOREIGN KEY (timetable_id) REFERENCES Timetables (id),
+    FOREIGN KEY (timetable_id) REFERENCES timetables (id),
     PRIMARY KEY (id)
 )

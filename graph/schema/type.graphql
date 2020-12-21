@@ -1,0 +1,51 @@
+type User {
+    id: ID!
+    email: String!
+    school: String
+    name: String
+    timetables: [Timetable]
+}
+
+type Timetable {
+    id: ID!
+    name: String!
+    days: Int!           # 平日、平日＋土、毎日
+    periods: Int!        # 時限数
+    createdAt: String!   # todo datetime型はどうすればいいのか？
+    updatedAt: String!
+    isDefault: Boolean!
+    classes: [Class]
+    classtimes: [ClassTime]
+    rowData: [TimetableRowData]
+    user: User!
+}
+
+type ClassTime {
+    id: ID!
+    period: Int!        # 時限
+    startTime: String   # todo time型 ex) 9:00
+    endTime: String
+    timetable: Timetable!
+}
+
+type Class {
+    id: ID!
+    name: String!
+    day: Int!         # 曜日
+    period: Int!      # 時限
+    color: String!    # 背景色
+    style: String!    # 授業形態
+    teacher: String!
+    credit: Int       # 単位数
+    memo: String
+    roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
+    timetable: Timetable!
+}
+
+type TimetableRowData {
+    periods: Int!
+    Classes: [Class]
+    startTime: String!
+    endTime: String!
+    timetable: Timetable!
+}

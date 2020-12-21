@@ -6,27 +6,44 @@ package graph
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
 	"github.com/mi11km/zikanwarikun-back/graph/model"
+	database "github.com/mi11km/zikanwarikun-back/internal/db"
 	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
 	"github.com/mi11km/zikanwarikun-back/internal/middleware/auth"
 	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	var user users.User
-	user.Email = input.Email
-	user.Password = input.Password
-	user.School = input.School
-	user.Name = input.Name
-	user.Create()
+	hashedPassword, err := users.HashPassword(input.Password)
+	if err != nil {
+		log.Printf("action=failed to generate hashpassword, err=%s", err)
+		return "", err
+	}
+
+	user := users.User{
+		ID:       uuid.New().String(), // todo uuidのDBへの保存方法の最適化(現在は36文字のVARCHAR)
+		Email:    input.Email,
+		Password: hashedPassword,
+		School:   input.School,
+		Name:     input.Name,
+	}
+	result := database.Db.Create(&user)
+	if result.Error != nil {
+		log.Printf("action=failed to create user, err=%s", result.Error)
+		return "", result.Error
+	}
+
 	token, err := jwt.GenerateToken(user.ID)
 	if err != nil {
 		return "", err
 	}
+
 	return token, nil
 }
 
@@ -48,16 +65,22 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, input *model.DeleteUs
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
 	var user users.User
-	user.Email = input.Email
-	user.Password = input.Password
-	correct := user.Authenticate()
+	result := database.Db.Select("id", "password").Where("email = ?", input.Email).First(&user)
+	if result.Error != nil {
+		log.Printf("action=failed to select user from email, err=%s", result.Error)
+		return "", result.Error
+	}
+
+	correct := users.CheckPasswordHash(input.Password, user.Password)
 	if !correct {
 		return "", &users.WrongUsernameOrPasswordError{}
 	}
+
 	token, err := jwt.GenerateToken(user.ID)
 	if err != nil {
 		return "", err
 	}
+
 	return token, nil
 }
 

@@ -1,5 +1,6 @@
 package graph
 
+// todo テストコードを書いて本当に正しい動作をするか確認する
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
 
@@ -22,7 +23,7 @@ import (
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
 	hashedPassword, err := users.HashPassword(input.Password)
 	if err != nil {
-		log.Printf("action=failed to generate hashpassword, err=%s", err)
+		log.Printf("action=create user, status=failed, err=%s", err)
 		return "", err
 	}
 
@@ -35,64 +36,137 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	}
 	result := database.Db.Create(&user)
 	if result.Error != nil {
-		log.Printf("action=failed to create user, err=%s", result.Error)
+		log.Printf("action=create user, status=failed, err=%s", result.Error)
 		return "", result.Error
 	}
 
 	token, err := jwt.GenerateToken(user.ID)
 	if err != nil {
+		log.Printf("action=create user, status=failed, err=%s", err)
 		return "", err
 	}
 
+	log.Printf("action=create user, status=success")
 	return token, nil
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input *model.UpdateUser) (string, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
-		return "", fmt.Errorf("access denied")
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=update user, status=failed, err=%s", err.Error())
+		return "", err
 	}
-	panic(fmt.Errorf("not implemented"))
+
+	updateData := make(map[string]interface{})
+	if input.Email != nil {
+		updateData["email"] = *input.Email
+	}
+	if input.School != nil {
+		updateData["school"] = *input.School
+	}
+	if input.Name != nil {
+		updateData["name"] = *input.Name
+	}
+	if input.Password != nil {
+		if input.CurrentPassword == nil {
+			log.Printf("action=update user, status=failed, err=currentPassword is not set")
+			return "", fmt.Errorf("to update password, currentPassword is needed")
+		}
+		correct := users.CheckPasswordHash(*input.CurrentPassword, user.Password)
+		if !correct {
+			log.Printf("action=update user, status=failed, err=currentPassword is wrong")
+			return "", fmt.Errorf("failed to update password. currentPassword is wrong")
+		}
+
+		hashedPassword, err := users.HashPassword(*input.Password)
+		if err != nil {
+			log.Printf("action=update user, status=failed, err=%s", err)
+			return "", err
+		}
+		updateData["password"] = hashedPassword
+	}
+	if len(updateData) == 0 {
+		log.Printf("action=update user, status=failed, err=update data is not set")
+		return "", fmt.Errorf("update data must be set")
+	}
+
+	result := database.Db.Model(&user).Updates(updateData)
+	if result.Error != nil {
+		log.Printf("action=update user, status=failed, err=%s", result.Error)
+		return "", result.Error
+	}
+
+	token, err := jwt.GenerateToken(user.ID)
+	if err != nil {
+		log.Printf("action=update user, status=failed, err=%s", err)
+		return "", err
+	}
+
+	log.Printf("action=update user, status=success")
+	return token, nil
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, input *model.DeleteUser) (bool, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
-		return false, fmt.Errorf("access denied")
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=delete user, status=failed, err=%s", err.Error())
+		return false, err
 	}
-	panic(fmt.Errorf("not implemented"))
+
+	correct := users.CheckPasswordHash(input.Password, user.Password)
+	if !correct {
+		log.Printf("action=delete user, status=failed, err=password is wrong")
+		return false, fmt.Errorf("failed to delte user. password is wrong")
+	}
+
+	result := database.Db.Delete(&user)
+	if result.Error != nil {
+		log.Printf("action=delete user, status=failed, err=%s", result.Error)
+		return false, result.Error
+	}
+
+	log.Printf("action=delete user, status=success")
+	return true, nil
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
 	var user users.User
 	result := database.Db.Select("id", "password").Where("email = ?", input.Email).First(&user)
 	if result.Error != nil {
-		log.Printf("action=failed to select user from email, err=%s", result.Error)
+		log.Printf("action=login, status=failed, err=%s", result.Error)
 		return "", result.Error
 	}
 
 	correct := users.CheckPasswordHash(input.Password, user.Password)
 	if !correct {
-		return "", &users.WrongUsernameOrPasswordError{}
+		log.Printf("action=login, status=failed, err=email or password is wrong")
+		return "", fmt.Errorf("failed to login. email or password is wrong")
 	}
 
 	token, err := jwt.GenerateToken(user.ID)
 	if err != nil {
+		log.Printf("action=login, status=failed, err=%s", err)
 		return "", err
 	}
 
+	log.Printf("action=login, status=success")
 	return token, nil
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
 	id, err := jwt.ParseToken(input.Token)
 	if err != nil {
-		return "", fmt.Errorf("access denied")
+		log.Printf("action=refresh token, status=failed, err=failed to parse token")
+		return "", fmt.Errorf("failed to parse given token")
 	}
 	token, err := jwt.GenerateToken(id)
 	if err != nil {
+		log.Printf("action=refresh token, status=failed, err=failed to generate token")
 		return "", err
 	}
+	log.Printf("action=refresh token, status=success")
 	return token, nil
 }
 
@@ -169,9 +243,18 @@ func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool,
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	user := auth.ForContext(ctx)
 	if user == nil {
-		return &model.User{}, fmt.Errorf("access denied")
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=get current user data, status=failed, err=%s", err.Error())
+		return nil, err
 	}
-	panic(fmt.Errorf("not implemented"))
+	graphqlUser := &model.User{ // todo timetablesデータも送れるようにする
+		ID:     user.ID,
+		Email:  user.Email,
+		School: &user.School,
+		Name:   &user.Name,
+	}
+	log.Printf("action=get current user data, status=success")
+	return graphqlUser, nil
 }
 
 func (r *queryResolver) Timetable(ctx context.Context) (*model.Timetable, error) {

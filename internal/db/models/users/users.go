@@ -48,7 +48,7 @@ func (user *User) CreateUser(input model.NewUser) (string, error) {
 	return token, nil
 }
 
-func (user *User) UpdateUser(input *model.UpdateUser, u User) (string,error) {
+func (user *User) UpdateUser(input *model.UpdateUser, u User) (string, error) {
 	user.Copy(u)
 
 	updateData := make(map[string]interface{})
@@ -100,7 +100,7 @@ func (user *User) UpdateUser(input *model.UpdateUser, u User) (string,error) {
 	return token, nil
 }
 
-func (user *User) DeleteUser(input model.DeleteUser, u User) (bool,error) {
+func (user *User) DeleteUser(input model.DeleteUser, u User) (bool, error) {
 	user.Copy(u)
 
 	correct := CheckPasswordHash(input.Password, user.Password)
@@ -157,6 +157,14 @@ func (user *User) RefreshToken(token string) (string, error) {
 	return refreshToken, nil
 }
 
+func (user *User) Copy(u User) {
+	user.ID = u.ID
+	user.Email = u.Email
+	user.Password = u.Password
+	user.Name = u.Name
+	user.School = u.School
+}
+
 //HashPassword hashes given password
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
@@ -167,12 +175,4 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
-}
-
-func(user *User) Copy(u User) {
-	user.ID = u.ID
-	user.Email = u.Email
-	user.Password = u.Password
-	user.Name = u.Name
-	user.School = u.School
 }

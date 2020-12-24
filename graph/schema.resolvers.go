@@ -26,7 +26,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUser) (string, error) {
 	auth := auth.ForContext(ctx)
-	if auth.User == nil {
+	if auth == nil {
 		err := &users.UnauthenticatedUserAccessError{}
 		log.Printf("action=update user, status=failed, err=%s", err.Error())
 		return "", err
@@ -36,7 +36,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, input model.DeleteUser) (bool, error) {
 	auth := auth.ForContext(ctx)
-	if auth.User == nil {
+	if auth == nil {
 		err := &users.UnauthenticatedUserAccessError{}
 		log.Printf("action=delete user, status=failed, err=%s", err.Error())
 		return false, err
@@ -56,9 +56,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 
 func (r *mutationResolver) RefreshToken(ctx context.Context) (string, error) {
 	auth := auth.ForContext(ctx)
-	if auth.Token == nil {
-		err := &users.TokenIsNotSetError{}
-		log.Printf("action=refresh token, status=failed, err=%s", err)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=delete user, status=failed, err=%s", err.Error())
 		return "", err
 	}
 	return r.UserService.RefreshToken(*auth.Token)
@@ -99,7 +99,7 @@ func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool,
 
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	auth := auth.ForContext(ctx)
-	if auth.User == nil {
+	if auth == nil {
 		err := &users.UnauthenticatedUserAccessError{}
 		log.Printf("action=get current user data, status=failed, err=%s", err.Error())
 		return nil, err

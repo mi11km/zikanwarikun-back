@@ -1,6 +1,5 @@
 package graph
 
-// todo テストコードを書いて本当に正しい動作をするか確認する
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
 
@@ -11,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
@@ -21,33 +19,7 @@ import (
 )
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	hashedPassword, err := users.HashPassword(input.Password)
-	if err != nil {
-		log.Printf("action=create user, status=failed, err=%s", err)
-		return "", err
-	}
-
-	user := users.User{
-		ID:       uuid.New().String(), // todo uuidのDBへの保存方法の最適化(現在は36文字のVARCHAR)
-		Email:    input.Email,
-		Password: hashedPassword,
-		School:   input.School,
-		Name:     input.Name,
-	}
-	result := database.Db.Create(&user)
-	if result.Error != nil {
-		log.Printf("action=create user, status=failed, err=%s", result.Error)
-		return "", result.Error
-	}
-
-	token, err := jwt.GenerateToken(user.ID)
-	if err != nil {
-		log.Printf("action=create user, status=failed, err=%s", err)
-		return "", err
-	}
-
-	log.Printf("action=create user, status=success")
-	return token, nil
+	return r.UserService.CreateUser(input)
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, input *model.UpdateUser) (string, error) {
@@ -132,42 +104,11 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, input *model.DeleteUs
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	var user users.User
-	result := database.Db.Select("id", "password").Where("email = ?", input.Email).First(&user)
-	if result.Error != nil {
-		log.Printf("action=login, status=failed, err=%s", result.Error)
-		return "", result.Error
-	}
-
-	correct := users.CheckPasswordHash(input.Password, user.Password)
-	if !correct {
-		log.Printf("action=login, status=failed, err=email or password is wrong")
-		return "", fmt.Errorf("failed to login. email or password is wrong")
-	}
-
-	token, err := jwt.GenerateToken(user.ID)
-	if err != nil {
-		log.Printf("action=login, status=failed, err=%s", err)
-		return "", err
-	}
-
-	log.Printf("action=login, status=success")
-	return token, nil
+	return r.UserService.Login(input)
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	id, err := jwt.ParseToken(input.Token)
-	if err != nil {
-		log.Printf("action=refresh token, status=failed, err=failed to parse token")
-		return "", fmt.Errorf("failed to parse given token")
-	}
-	token, err := jwt.GenerateToken(id)
-	if err != nil {
-		log.Printf("action=refresh token, status=failed, err=failed to generate token")
-		return "", err
-	}
-	log.Printf("action=refresh token, status=success")
-	return token, nil
+	return r.UserService.RefreshToken(input) // todo ctxで認証ミドルウェアから直接token取得してもいいかも
 }
 
 func (r *mutationResolver) CreateTimetable(ctx context.Context, input model.NewTimetable) (*model.Timetable, error) {

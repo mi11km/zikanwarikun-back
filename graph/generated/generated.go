@@ -72,13 +72,13 @@ type ComplexityRoot struct {
 		CreateUser      func(childComplexity int, input model.NewUser) int
 		DeleteClass     func(childComplexity int, input string) int
 		DeleteTimetable func(childComplexity int, input string) int
-		DeleteUser      func(childComplexity int, input *model.DeleteUser) int
+		DeleteUser      func(childComplexity int, input model.DeleteUser) int
 		Login           func(childComplexity int, input model.Login) int
-		RefreshToken    func(childComplexity int, input model.RefreshTokenInput) int
+		RefreshToken    func(childComplexity int) int
 		UpdateClass     func(childComplexity int, input model.UpdateClass) int
 		UpdateClassTime func(childComplexity int, input model.UpdateClassTime) int
 		UpdateTimetable func(childComplexity int, input model.UpdateTimetable) int
-		UpdateUser      func(childComplexity int, input *model.UpdateUser) int
+		UpdateUser      func(childComplexity int, input model.UpdateUser) int
 	}
 
 	Query struct {
@@ -120,10 +120,10 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateUser(ctx context.Context, input model.NewUser) (string, error)
-	UpdateUser(ctx context.Context, input *model.UpdateUser) (string, error)
-	DeleteUser(ctx context.Context, input *model.DeleteUser) (bool, error)
+	UpdateUser(ctx context.Context, input model.UpdateUser) (string, error)
+	DeleteUser(ctx context.Context, input model.DeleteUser) (bool, error)
 	Login(ctx context.Context, input model.Login) (string, error)
-	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
+	RefreshToken(ctx context.Context) (string, error)
 	CreateTimetable(ctx context.Context, input model.NewTimetable) (*model.Timetable, error)
 	UpdateTimetable(ctx context.Context, input model.UpdateTimetable) (*model.Timetable, error)
 	DeleteTimetable(ctx context.Context, input string) (bool, error)
@@ -348,7 +348,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteUser(childComplexity, args["input"].(*model.DeleteUser)), true
+		return e.complexity.Mutation.DeleteUser(childComplexity, args["input"].(model.DeleteUser)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -367,12 +367,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_refreshToken_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RefreshToken(childComplexity, args["input"].(model.RefreshTokenInput)), true
+		return e.complexity.Mutation.RefreshToken(childComplexity), true
 
 	case "Mutation.updateClass":
 		if e.complexity.Mutation.UpdateClass == nil {
@@ -420,7 +415,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(*model.UpdateUser)), true
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UpdateUser)), true
 
 	case "Query.timetable":
 		if e.complexity.Query.Timetable == nil {
@@ -739,10 +734,10 @@ input UpdateClass {
 
 type Mutation {
     createUser(input: NewUser!): String!              # return token
-    updateUser(input: UpdateUser): String!            # return token
-    deleteUser(input: DeleteUser): Boolean!
+    updateUser(input: UpdateUser!): String!            # return token, passwordのupdateにはcurrentPasswordが必須
+    deleteUser(input: DeleteUser!): Boolean!
     login(input: Login!): String!                     # return token
-    refreshToken(input: RefreshTokenInput!): String!  # return token
+    refreshToken: String!                             # return token, headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
     updateTimetable(input: UpdateTimetable!): Timetable!
@@ -908,10 +903,10 @@ func (ec *executionContext) field_Mutation_deleteTimetable_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.DeleteUser
+	var arg0 model.DeleteUser
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalODeleteUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐDeleteUser(ctx, tmp)
+		arg0, err = ec.unmarshalNDeleteUser2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐDeleteUser(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -927,21 +922,6 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNLogin2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐLogin(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.RefreshTokenInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNRefreshTokenInput2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐRefreshTokenInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -998,10 +978,10 @@ func (ec *executionContext) field_Mutation_updateTimetable_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.UpdateUser
+	var arg0 model.UpdateUser
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOUpdateUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUpdateUser(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdateUser2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUpdateUser(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1678,7 +1658,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, args["input"].(*model.UpdateUser))
+		return ec.resolvers.Mutation().UpdateUser(rctx, args["input"].(model.UpdateUser))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1720,7 +1700,7 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUser(rctx, args["input"].(*model.DeleteUser))
+		return ec.resolvers.Mutation().DeleteUser(rctx, args["input"].(model.DeleteUser))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1795,16 +1775,9 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_refreshToken_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RefreshToken(rctx, args["input"].(model.RefreshTokenInput))
+		return ec.resolvers.Mutation().RefreshToken(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5315,6 +5288,11 @@ func (ec *executionContext) marshalNClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwa
 	return ec._ClassTime(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDeleteUser2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐDeleteUser(ctx context.Context, v interface{}) (model.DeleteUser, error) {
+	res, err := ec.unmarshalInputDeleteUser(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5367,11 +5345,6 @@ func (ec *executionContext) unmarshalNNewTimetable2githubᚗcomᚋmi11kmᚋzikan
 
 func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNRefreshTokenInput2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐRefreshTokenInput(ctx context.Context, v interface{}) (model.RefreshTokenInput, error) {
-	res, err := ec.unmarshalInputRefreshTokenInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -5453,6 +5426,11 @@ func (ec *executionContext) unmarshalNUpdateClassTime2githubᚗcomᚋmi11kmᚋzi
 
 func (ec *executionContext) unmarshalNUpdateTimetable2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUpdateTimetable(ctx context.Context, v interface{}) (model.UpdateTimetable, error) {
 	res, err := ec.unmarshalInputUpdateTimetable(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateUser2githubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUpdateUser(ctx context.Context, v interface{}) (model.UpdateUser, error) {
+	res, err := ec.unmarshalInputUpdateUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -5817,14 +5795,6 @@ func (ec *executionContext) marshalOClassTime2ᚖgithubᚗcomᚋmi11kmᚋzikanwa
 	return ec._ClassTime(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODeleteUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐDeleteUser(ctx context.Context, v interface{}) (*model.DeleteUser, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputDeleteUser(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -5956,14 +5926,6 @@ func (ec *executionContext) marshalOTimetableRowData2ᚖgithubᚗcomᚋmi11kmᚋ
 		return graphql.Null
 	}
 	return ec._TimetableRowData(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOUpdateUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUpdateUser(ctx context.Context, v interface{}) (*model.UpdateUser, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputUpdateUser(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

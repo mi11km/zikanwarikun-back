@@ -6,10 +6,10 @@ type Query {
 
 type Mutation {
     createUser(input: NewUser!): String!              # return token
-    updateUser(input: UpdateUser): String!            # return token, passwordのupdateにはcurrentPasswordが必須
-    deleteUser(input: DeleteUser): Boolean!
+    updateUser(input: UpdateUser!): String!           # return token, passwordのupdateにはcurrentPasswordが必須
+    deleteUser(input: DeleteUser!): Boolean!
     login(input: Login!): String!                     # return token
-    refreshToken(input: RefreshTokenInput!): String!  # return token
+    refreshToken: String!                             # return token, headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
     updateTimetable(input: UpdateTimetable!): Timetable!

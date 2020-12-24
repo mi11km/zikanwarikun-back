@@ -9,7 +9,14 @@ import (
 	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
 )
 
-var userCtxKey = &contextKey{"user"}
+type Auth struct {
+	User  *users.User
+	Token *string
+}
+
+var (
+	authCtxKey  = &contextKey{"auth"}
+)
 
 type contextKey struct {
 	name string
@@ -42,8 +49,10 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 
+			auth := &Auth{&user, &tokenStr}
+
 			// put it in context
-			ctx := context.WithValue(r.Context(), userCtxKey, &user)
+			ctx := context.WithValue(r.Context(), authCtxKey, auth)
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
@@ -53,7 +62,9 @@ func Middleware() func(http.Handler) http.Handler {
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) *users.User {
-	raw, _ := ctx.Value(userCtxKey).(*users.User)
+func ForContext(ctx context.Context) *Auth {
+	raw, _ := ctx.Value(authCtxKey).(*Auth)
 	return raw
 }
+
+

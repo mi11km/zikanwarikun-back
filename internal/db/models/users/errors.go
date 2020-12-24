@@ -1,7 +1,7 @@
 package users
 
-type WrongUsernameOrPasswordError struct{}
+type UnauthenticatedUserAccessError struct{}
 
-func (m *WrongUsernameOrPasswordError) Error() string {
-	return "wrong email or password"
+func (m *UnauthenticatedUserAccessError) Error() string {
+	return "unauthenticated user access denied"
 }

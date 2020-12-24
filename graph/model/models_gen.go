@@ -113,10 +113,11 @@ type UpdateTimetable struct {
 }
 
 type UpdateUser struct {
-	Email    *string `json:"email"`
-	Password *string `json:"password"`
-	School   *string `json:"school"`
-	Name     *string `json:"name"`
+	Email           *string `json:"email"`
+	Password        *string `json:"password"`
+	School          *string `json:"school"`
+	Name            *string `json:"name"`
+	CurrentPassword *string `json:"currentPassword"`
 }
 
 type User struct {

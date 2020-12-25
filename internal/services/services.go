@@ -14,7 +14,7 @@ type UserService interface {
 }
 
 type TimetableService interface {
-	CreateTimetable(input model.NewTimetable) (*model.Timetable, error)
+	CreateTimetable(input model.NewTimetable, user users.User) (*model.Timetable, error)
 	UpdateTimetable(input model.UpdateTimetable) (*model.Timetable, error)
 	DeleteTimetable(input int) (bool, error)
 }

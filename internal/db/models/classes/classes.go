@@ -3,7 +3,7 @@ package classes
 import "github.com/mi11km/zikanwarikun-back/internal/db/models/timetables"
 
 type Class struct {
-	ID        int                `json:"id"`
+	ID        int                   `json:"id"`
 	Name      string                `json:"name"`
 	Day       int                   `json:"day"`
 	Period    int                   `json:"period"`

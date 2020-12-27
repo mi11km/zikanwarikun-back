@@ -105,7 +105,7 @@ func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user users.User
 	// todo? userにtimetablesも入れとくべきか。入れても使わない気がする
 
 	log.Printf("action=update timetable, status=success")
-	return graphTimetable, nil  // todo? updateしたデータとidとupdatedAt以外空になってる。
+	return graphTimetable, nil // todo? updateしたデータとidとupdatedAt以外空になってる。
 }
 
 // todo 関連レコードも一括削除する

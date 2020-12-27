@@ -43,7 +43,7 @@ func main() {
 	router.Use(auth.Middleware())
 
 	resolvers := &graph.Resolver{
-		UserService: new(users.User),
+		UserService:      new(users.User),
 		TimetableService: new(timetables.Timetable),
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))

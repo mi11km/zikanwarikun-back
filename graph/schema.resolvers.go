@@ -42,7 +42,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, input model.DeleteUse
 		log.Printf("action=delete user, status=failed, err=%s", err.Error())
 		return false, err
 	}
-	return r.UserService.DeleteUser(input, *auth.User) // todo 関連レコードも一括削除できてるか？
+	return r.UserService.DeleteUser(input, *auth.User)
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {

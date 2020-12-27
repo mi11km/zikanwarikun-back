@@ -82,7 +82,7 @@ func (r *mutationResolver) UpdateTimetable(ctx context.Context, input model.Upda
 		log.Printf("action=update timetable, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	return r.TimetableService.UpdateTimetable(input)
+	return r.TimetableService.UpdateTimetable(input, *auth.User)
 }
 
 func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (bool, error) {
@@ -92,7 +92,7 @@ func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (b
 		log.Printf("action=delete timetable, status=failed, err=%s", err.Error())
 		return false, err
 	}
-	panic(fmt.Errorf("not implemented"))
+	return r.TimetableService.DeleteTimetable(input)
 }
 
 func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {

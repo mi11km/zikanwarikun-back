@@ -1,6 +1,7 @@
 package timetables
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -58,12 +59,71 @@ func (t *Timetable) CreateTimetable(input model.NewTimetable, user users.User) (
 	return graphTimetable, nil
 }
 
-func (t *Timetable) UpdateTimetable(input model.UpdateTimetable) (*model.Timetable, error) {
-	return nil, nil
+func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user users.User) (*model.Timetable, error) {
+	updateData := make(map[string]interface{})
+	if input.Name != nil {
+		updateData["name"] = *input.Name
+	}
+	if input.Days != nil {
+		updateData["class_days"] = *input.Days
+	}
+	if input.Periods != nil {
+		updateData["class_periods"] = *input.Periods
+	}
+	if input.IsDefault != nil {
+		updateData["is_default"] = *input.IsDefault
+		if *input.IsDefault {
+			database.Db.Model(&Timetable{}).
+				Where("is_default = ?", true).Update("is_default", false)
+		}
+	}
+	if len(updateData) == 0 {
+		log.Printf("action=update dbTimetable, status=failed, err=update data is not set")
+		return nil, fmt.Errorf("update data must be set")
+	}
+
+	id, err := strconv.Atoi(input.ID)
+	if err != nil {
+		log.Printf("action=update timetable, status=failed, err=%s", err)
+		return nil, err
+	}
+	dbTimetable := &Timetable{ID: id}
+
+	result := database.Db.Model(dbTimetable).Updates(updateData)
+	if result.Error != nil {
+		log.Printf("action=update timetable, status=failed, err=%s", result.Error)
+		return nil, result.Error
+	}
+	graphUser := &model.User{
+		ID:     user.ID,
+		Email:  user.Email,
+		School: &user.School,
+		Name:   &user.Name,
+	}
+	graphTimetable := ConvertTimetableFromDbToGraph(dbTimetable, graphUser)
+
+	// todo? userにtimetablesも入れとくべきか。入れても使わない気がする
+
+	log.Printf("action=update timetable, status=success")
+	return graphTimetable, nil  // todo? updateしたデータとidとupdatedAt以外空になってる。
 }
 
-func (t *Timetable) DeleteTimetable(input int) (bool, error) {
-	return false, nil
+func (t *Timetable) DeleteTimetable(input string) (bool, error) {
+	id, err := strconv.Atoi(input)
+	if err != nil {
+		log.Printf("action=delete timetable, status=failed, err=%s", err)
+		return false, err
+	}
+	dbTimetable := &Timetable{ID: id}
+
+	result := database.Db.Delete(dbTimetable)
+	if result.Error != nil {
+		log.Printf("action=delete timetable, status=failed, err=%s", result.Error)
+		return false, result.Error
+	}
+
+	log.Printf("action=delete timetable, status=success")
+	return true, nil
 }
 
 /* FetchTimetablesByUserId user_idからdbの時間割データを全て取得する */

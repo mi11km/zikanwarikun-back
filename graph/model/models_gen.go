@@ -106,10 +106,11 @@ type UpdateClassTime struct {
 }
 
 type UpdateTimetable struct {
+	ID        string  `json:"id"`
 	Name      *string `json:"name"`
 	Days      *int    `json:"days"`
 	Periods   *int    `json:"periods"`
-	IDDefault *bool   `json:"idDefault"`
+	IsDefault *bool   `json:"isDefault"`
 }
 
 type UpdateUser struct {

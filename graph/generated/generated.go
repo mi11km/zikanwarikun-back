@@ -684,10 +684,11 @@ input NewTimetable {
 }
 
 input UpdateTimetable {
+    id: ID!
     name: String
     days: Int
     periods: Int
-    idDefault: Boolean
+    isDefault: Boolean
 }
 
 input NewClassTime {
@@ -734,7 +735,7 @@ input UpdateClass {
 
 type Mutation {
     createUser(input: NewUser!): String!              # return token
-    updateUser(input: UpdateUser!): String!            # return token, passwordのupdateにはcurrentPasswordが必須
+    updateUser(input: UpdateUser!): String!           # return token, passwordのupdateにはcurrentPasswordが必須
     deleteUser(input: DeleteUser!): Boolean!
     login(input: Login!): String!                     # return token
     refreshToken: String!                             # return token, headerについてるトークンから更新する
@@ -4477,6 +4478,14 @@ func (ec *executionContext) unmarshalInputUpdateTimetable(ctx context.Context, o
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "name":
 			var err error
 
@@ -4501,11 +4510,11 @@ func (ec *executionContext) unmarshalInputUpdateTimetable(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "idDefault":
+		case "isDefault":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idDefault"))
-			it.IDDefault, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isDefault"))
+			it.IsDefault, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}

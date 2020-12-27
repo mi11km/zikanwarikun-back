@@ -12,7 +12,7 @@ type Mutation {
     refreshToken: String!                             # return token, headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
-    updateTimetable(input: UpdateTimetable!): Timetable!
+    updateTimetable(input: UpdateTimetable!): Timetable!  # idと更新データしか正しい値が返ってこない。
     deleteTimetable(input: ID!): Boolean!
 
     createClassTime(input: NewClassTime!): ClassTime!

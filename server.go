@@ -12,6 +12,8 @@ import (
 	"github.com/mi11km/zikanwarikun-back/graph"
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
+	"github.com/mi11km/zikanwarikun-back/internal/db/models/classes"
+	"github.com/mi11km/zikanwarikun-back/internal/db/models/classtimes"
 	"github.com/mi11km/zikanwarikun-back/internal/db/models/timetables"
 	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
 	"github.com/mi11km/zikanwarikun-back/internal/middleware/auth"
@@ -45,6 +47,8 @@ func main() {
 	resolvers := &graph.Resolver{
 		UserService:      new(users.User),
 		TimetableService: new(timetables.Timetable),
+		ClassService:     new(classes.Class),
+		ClassTimeService: new(classtimes.ClassTime),
 	}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
 

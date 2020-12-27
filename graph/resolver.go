@@ -11,4 +11,6 @@ import (
 type Resolver struct {
 	UserService      services.UserService
 	TimetableService services.TimetableService
+	ClassService     services.ClassService
+	ClassTimeService services.ClassTimeService
 }

@@ -108,6 +108,7 @@ func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user users.User
 	return graphTimetable, nil  // todo? updateしたデータとidとupdatedAt以外空になってる。
 }
 
+// todo 関連レコードも一括削除する
 func (t *Timetable) DeleteTimetable(input string) (bool, error) {
 	id, err := strconv.Atoi(input)
 	if err != nil {

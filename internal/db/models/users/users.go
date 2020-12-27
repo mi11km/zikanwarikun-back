@@ -100,6 +100,7 @@ func (user *User) UpdateUser(input *model.UpdateUser, u User) (string, error) {
 	return token, nil
 }
 
+// todo 関連レコードも一括削除する
 func (user *User) DeleteUser(input model.DeleteUser, u User) (bool, error) {
 	user.Copy(u)
 

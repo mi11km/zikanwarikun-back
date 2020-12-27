@@ -34,18 +34,20 @@ type Login struct {
 }
 
 type NewClass struct {
-	Name      string  `json:"name"`
-	Day       int     `json:"day"`
-	Period    int     `json:"period"`
-	Style     *string `json:"style"`
-	Teacher   *string `json:"teacher"`
-	RoomOrURL *string `json:"roomOrUrl"`
+	Name        string  `json:"name"`
+	Day         int     `json:"day"`
+	Period      int     `json:"period"`
+	Style       *string `json:"style"`
+	Teacher     *string `json:"teacher"`
+	RoomOrURL   *string `json:"roomOrUrl"`
+	TimetableID string  `json:"timetableId"`
 }
 
 type NewClassTime struct {
-	Period    int     `json:"period"`
-	StartTime *string `json:"startTime"`
-	EndTime   *string `json:"endTime"`
+	Period      int     `json:"period"`
+	StartTime   *string `json:"startTime"`
+	EndTime     *string `json:"endTime"`
+	TimetableID string  `json:"timetableId"`
 }
 
 type NewTimetable struct {
@@ -88,21 +90,25 @@ type TimetableRowData struct {
 }
 
 type UpdateClass struct {
-	Name      *string `json:"name"`
-	Day       int     `json:"day"`
-	Period    int     `json:"period"`
-	Color     *string `json:"color"`
-	Style     *string `json:"style"`
-	Teacher   *string `json:"teacher"`
-	Credit    *int    `json:"credit"`
-	Memo      *string `json:"memo"`
-	RoomOrURL *string `json:"roomOrUrl"`
+	ID          string  `json:"id"`
+	Name        *string `json:"name"`
+	Day         int     `json:"day"`
+	Period      int     `json:"period"`
+	Color       *string `json:"color"`
+	Style       *string `json:"style"`
+	Teacher     *string `json:"teacher"`
+	Credit      *int    `json:"credit"`
+	Memo        *string `json:"memo"`
+	RoomOrURL   *string `json:"roomOrUrl"`
+	TimetableID string  `json:"timetableId"`
 }
 
 type UpdateClassTime struct {
-	Period    int     `json:"period"`
-	StartTime *string `json:"startTime"`
-	EndTime   *string `json:"endTime"`
+	ID          string  `json:"id"`
+	Period      int     `json:"period"`
+	StartTime   *string `json:"startTime"`
+	EndTime     *string `json:"endTime"`
+	TimetableID string  `json:"timetableId"`
 }
 
 type UpdateTimetable struct {

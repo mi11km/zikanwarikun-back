@@ -94,26 +94,6 @@ func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (b
 	return r.TimetableService.DeleteTimetable(input)
 }
 
-func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {
-	auth := auth.ForContext(ctx)
-	if auth == nil {
-		err := &users.UnauthenticatedUserAccessError{}
-		log.Printf("action=create class time, status=failed, err=%s", err.Error())
-		return nil, err
-	}
-	return r.ClassTimeService.CreateClassTime(input)
-}
-
-func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
-	auth := auth.ForContext(ctx)
-	if auth == nil {
-		err := &users.UnauthenticatedUserAccessError{}
-		log.Printf("action=update class time, status=failed, err=%s", err.Error())
-		return nil, err
-	}
-	return r.ClassTimeService.UpdateClassTime(input)
-}
-
 func (r *mutationResolver) CreateClass(ctx context.Context, input model.NewClass) (*model.Class, error) {
 	auth := auth.ForContext(ctx)
 	if auth == nil {
@@ -142,6 +122,26 @@ func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool,
 		return false, err
 	}
 	return r.ClassService.DeleteClass(input)
+}
+
+func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=create class time, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return r.ClassTimeService.CreateClassTime(input)
+}
+
+func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=update class time, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return r.ClassTimeService.UpdateClassTime(input)
 }
 
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {

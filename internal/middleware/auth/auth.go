@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
-	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
+	"github.com/mi11km/zikanwarikun-back/internal/db/models"
 	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
 )
 
 type Auth struct {
-	User  *users.User
+	User  *models.User
 	Token *string
 }
 
 var (
-	authCtxKey  = &contextKey{"auth"}
+	authCtxKey = &contextKey{"auth"}
 )
 
 type contextKey struct {
@@ -42,8 +42,8 @@ func Middleware() func(http.Handler) http.Handler {
 			}
 
 			// create user and check if user exists in db
-			var user users.User
-			result := database.Db.Select("id", "email", "password", "school", "name").Where("id = ?", id).First(&user)
+			var user models.User
+			result := database.Db.Where("id = ?", id).First(&user)
 			if result.Error != nil {
 				next.ServeHTTP(w, r)
 				return
@@ -66,5 +66,3 @@ func ForContext(ctx context.Context) *Auth {
 	raw, _ := ctx.Value(authCtxKey).(*Auth)
 	return raw
 }
-
-

@@ -1,17 +1,18 @@
-package classtimes
+package models
 
 import (
 	"time"
 
 	"github.com/mi11km/zikanwarikun-back/graph/model"
+	"gorm.io/gorm"
 )
 
 type ClassTime struct {
-	ID          int       `json:"id"`
-	Period      int       `json:"period"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
-	TimetableID int       `json:"timetable_id"`
+	gorm.Model
+	Periods     uint
+	StartTime   time.Time
+	EndTime     time.Time
+	TimetableID uint
 }
 
 func (classTime *ClassTime) CreateClassTime(input model.NewClassTime) (*model.ClassTime, error) {

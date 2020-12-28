@@ -25,7 +25,6 @@ type ClassTime {
     period: Int!        # 時限
     startTime: String   # todo time型 ex) 9:00
     endTime: String
-    timetable: Timetable!
 }
 
 type Class {
@@ -39,7 +38,6 @@ type Class {
     credit: Int       # 単位数
     memo: String
     roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
-    timetable: Timetable!
 }
 
 type TimetableRowData {
@@ -47,5 +45,4 @@ type TimetableRowData {
     Classes: [Class]
     startTime: String!
     endTime: String!
-    timetable: Timetable!
 }

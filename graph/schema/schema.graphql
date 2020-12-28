@@ -15,12 +15,12 @@ type Mutation {
     updateTimetable(input: UpdateTimetable!): Timetable!  # idと更新データしか正しい値が返ってこない。
     deleteTimetable(input: ID!): Boolean!
 
-    createClassTime(input: NewClassTime!): ClassTime!
-    updateClassTime(input: UpdateClassTime!): ClassTime!
-
     createClass(input: NewClass!): Class!
     updateClass(input: UpdateClass!): Class!
     deleteClass(input: ID!): Boolean!
+
+    createClassTime(input: NewClassTime!): ClassTime!
+    updateClassTime(input: UpdateClassTime!): ClassTime!
 }
 
 #　todo delete処理後の返り値を何にするべきか

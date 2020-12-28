@@ -44,12 +44,15 @@ input NewClassTime {
     period: Int!
     startTime: String
     endTime: String
+    timetableId: ID!
 }
 
 input UpdateClassTime {
+    id: ID!
     period: Int!
     startTime: String
     endTime: String
+    timetableId: ID!
 }
 
 input NewClass {
@@ -59,12 +62,12 @@ input NewClass {
     style: String
     teacher: String
     roomOrUrl: String
+    timetableId: ID!
 }
 
 input UpdateClass {
+    id: ID!
     name: String
-    day: Int!
-    period: Int!
     color: String
     style: String
     teacher: String

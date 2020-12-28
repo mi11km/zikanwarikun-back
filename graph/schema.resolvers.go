@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
@@ -95,24 +94,54 @@ func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (b
 	return r.TimetableService.DeleteTimetable(input)
 }
 
-func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) CreateClass(ctx context.Context, input model.NewClass) (*model.Class, error) {
-	panic(fmt.Errorf("not implemented"))
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=create class, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return r.ClassService.CreateClass(input)
 }
 
 func (r *mutationResolver) UpdateClass(ctx context.Context, input model.UpdateClass) (*model.Class, error) {
-	panic(fmt.Errorf("not implemented"))
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=update class, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return r.ClassService.UpdateClass(input)
 }
 
 func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=delete class, status=failed, err=%s", err.Error())
+		return false, err
+	}
+	return r.ClassService.DeleteClass(input)
+}
+
+func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=create class time, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return r.ClassTimeService.CreateClassTime(input)
+}
+
+func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
+	auth := auth.ForContext(ctx)
+	if auth == nil {
+		err := &users.UnauthenticatedUserAccessError{}
+		log.Printf("action=update class time, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return r.ClassTimeService.UpdateClassTime(input)
 }
 
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {

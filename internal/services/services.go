@@ -18,3 +18,14 @@ type TimetableService interface {
 	UpdateTimetable(input model.UpdateTimetable, user users.User) (*model.Timetable, error)
 	DeleteTimetable(input string) (bool, error)
 }
+
+type ClassService interface {
+	CreateClass(input model.NewClass) (*model.Class, error)
+	UpdateClass(input model.UpdateClass) (*model.Class, error)
+	DeleteClass(input string) (bool, error)
+}
+
+type ClassTimeService interface {
+	CreateClassTime(input model.NewClassTime) (*model.ClassTime, error)
+	UpdateClassTime(input model.UpdateClassTime) (*model.ClassTime, error)
+}

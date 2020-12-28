@@ -8,6 +8,7 @@ import (
 
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
+	"github.com/mi11km/zikanwarikun-back/internal/db/models/classes"
 	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
 )
 
@@ -33,7 +34,7 @@ func (t *Timetable) CreateTimetable(input model.NewTimetable, user users.User) (
 		IsDefault:    true,
 		UserID:       user.ID,
 	}
-	result := database.Db.Create(&newTimetable)
+	result := database.Db.Create(newTimetable)
 	if result.Error != nil {
 		log.Printf("action=create timetable, status=failed, err=%s", result.Error)
 		return nil, result.Error
@@ -105,7 +106,7 @@ func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user users.User
 	// todo? userにtimetablesも入れとくべきか。入れても使わない気がする
 
 	log.Printf("action=update timetable, status=success")
-	return graphTimetable, nil  // todo? updateしたデータとidとupdatedAt以外空になってる。
+	return graphTimetable, nil // todo? updateしたデータとidとupdatedAt以外空になってる。
 }
 
 // todo 関連レコードも一括削除する
@@ -157,8 +158,8 @@ func ConvertTimetableFromDbToGraph(dbTimetable *Timetable, user *model.User) *mo
 		CreatedAt: dbTimetable.CreatedAt.String(),
 		UpdatedAt: dbTimetable.UpdatedAt.String(),
 		IsDefault: dbTimetable.IsDefault,
-		//Classes: , // todo
-		//Classtimes: ,
+		Classes:   classes.GetGraphClasses(dbTimetable.ID),
+		//Classtimes: , // todo
 		//RowData: ,
 		User: user,
 	}

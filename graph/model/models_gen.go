@@ -3,25 +3,23 @@
 package model
 
 type Class struct {
-	ID        string     `json:"id"`
-	Name      string     `json:"name"`
-	Day       int        `json:"day"`
-	Period    int        `json:"period"`
-	Color     string     `json:"color"`
-	Style     string     `json:"style"`
-	Teacher   string     `json:"teacher"`
-	Credit    *int       `json:"credit"`
-	Memo      *string    `json:"memo"`
-	RoomOrURL string     `json:"roomOrUrl"`
-	Timetable *Timetable `json:"timetable"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Day       int     `json:"day"`
+	Period    int     `json:"period"`
+	Color     string  `json:"color"`
+	Style     string  `json:"style"`
+	Teacher   string  `json:"teacher"`
+	Credit    *int    `json:"credit"`
+	Memo      *string `json:"memo"`
+	RoomOrURL string  `json:"roomOrUrl"`
 }
 
 type ClassTime struct {
-	ID        string     `json:"id"`
-	Period    int        `json:"period"`
-	StartTime *string    `json:"startTime"`
-	EndTime   *string    `json:"endTime"`
-	Timetable *Timetable `json:"timetable"`
+	ID        string  `json:"id"`
+	Period    int     `json:"period"`
+	StartTime *string `json:"startTime"`
+	EndTime   *string `json:"endTime"`
 }
 
 type DeleteUser struct {
@@ -82,25 +80,21 @@ type Timetable struct {
 }
 
 type TimetableRowData struct {
-	Periods   int        `json:"periods"`
-	Classes   []*Class   `json:"Classes"`
-	StartTime string     `json:"startTime"`
-	EndTime   string     `json:"endTime"`
-	Timetable *Timetable `json:"timetable"`
+	Periods   int      `json:"periods"`
+	Classes   []*Class `json:"Classes"`
+	StartTime string   `json:"startTime"`
+	EndTime   string   `json:"endTime"`
 }
 
 type UpdateClass struct {
-	ID          string  `json:"id"`
-	Name        *string `json:"name"`
-	Day         int     `json:"day"`
-	Period      int     `json:"period"`
-	Color       *string `json:"color"`
-	Style       *string `json:"style"`
-	Teacher     *string `json:"teacher"`
-	Credit      *int    `json:"credit"`
-	Memo        *string `json:"memo"`
-	RoomOrURL   *string `json:"roomOrUrl"`
-	TimetableID string  `json:"timetableId"`
+	ID        string  `json:"id"`
+	Name      *string `json:"name"`
+	Color     *string `json:"color"`
+	Style     *string `json:"style"`
+	Teacher   *string `json:"teacher"`
+	Credit    *int    `json:"credit"`
+	Memo      *string `json:"memo"`
+	RoomOrURL *string `json:"roomOrUrl"`
 }
 
 type UpdateClassTime struct {

@@ -1,6 +1,5 @@
 # 本番環境用
 FROM golang:1.14-alpine as builder
-ENV GO111MODULE=on
 WORKDIR /go/src/app
 COPY go.mod go.sum ./
 RUN go mod download

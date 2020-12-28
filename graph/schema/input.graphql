@@ -68,15 +68,12 @@ input NewClass {
 input UpdateClass {
     id: ID!
     name: String
-    day: Int!
-    period: Int!
     color: String
     style: String
     teacher: String
     credit: Int
     memo: String
     roomOrUrl: String
-    timetableId: ID!
 }
 
 

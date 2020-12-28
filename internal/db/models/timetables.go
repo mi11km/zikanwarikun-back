@@ -1,38 +1,37 @@
-package timetables
+package models
 
 import (
 	"fmt"
 	"log"
 	"strconv"
-	"time"
 
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
-	"github.com/mi11km/zikanwarikun-back/internal/db/models/classes"
-	"github.com/mi11km/zikanwarikun-back/internal/db/models/users"
+	"gorm.io/gorm"
 )
 
 type Timetable struct {
-	ID           int       `json:"id"`
-	Name         string    `json:"name"`
-	ClassDays    int       `json:"class_days"`
-	ClassPeriods int       `json:"class_periods"`
-	IsDefault    bool      `json:"is_default"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	UserID       string    `json:"user_id"`
+	gorm.Model
+	Name         string
+	ClassDays    int
+	ClassPeriods int
+	IsDefault    bool
+	Users        []User `gorm:"many2many:user_timetables;"`
+	ClassTimes   []*ClassTime
+	Classes      []*Class
 }
 
 /* CreateTimetable 時間割を新しくDBに作成してそれをデフォルトにする */
-func (t *Timetable) CreateTimetable(input model.NewTimetable, user users.User) (*model.Timetable, error) {
-	database.Db.Model(&Timetable{}).Where("is_default = ?", true).Update("is_default", false)
+func (t *Timetable) CreateTimetable(input model.NewTimetable, user User) (*model.Timetable, error) {
+	// todo userのtimetableの中でtrueになっているものをfalseにする
+	//database.Db.Model(&Timetable{}).Where("is_default = ?", true).Update("is_default", false)
 
 	newTimetable := &Timetable{
 		Name:         input.Name,
 		ClassDays:    input.Days,
 		ClassPeriods: input.Periods,
 		IsDefault:    true,
-		UserID:       user.ID,
+		Users:        []User{user},
 	}
 	result := database.Db.Create(newTimetable)
 	if result.Error != nil {
@@ -60,7 +59,7 @@ func (t *Timetable) CreateTimetable(input model.NewTimetable, user users.User) (
 	return graphTimetable, nil
 }
 
-func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user users.User) (*model.Timetable, error) {
+func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user User) (*model.Timetable, error) {
 	updateData := make(map[string]interface{})
 	if input.Name != nil {
 		updateData["name"] = *input.Name
@@ -88,7 +87,8 @@ func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user users.User
 		log.Printf("action=update timetable, status=failed, err=%s", err)
 		return nil, err
 	}
-	dbTimetable := &Timetable{ID: id}
+	dbTimetable := new(Timetable)
+	dbTimetable.ID = uint(id)
 
 	result := database.Db.Model(dbTimetable).Updates(updateData)
 	if result.Error != nil {
@@ -116,7 +116,8 @@ func (t *Timetable) DeleteTimetable(input string) (bool, error) {
 		log.Printf("action=delete timetable, status=failed, err=%s", err)
 		return false, err
 	}
-	dbTimetable := &Timetable{ID: id}
+	dbTimetable := new(Timetable)
+	dbTimetable.ID = uint(id)
 
 	result := database.Db.Delete(dbTimetable)
 	if result.Error != nil {
@@ -151,14 +152,14 @@ func FetchDefaultTimetableByUserId(userId string) (*Timetable, error) {
 /* ConvertTimetableFromDbToGraph １つ、dbの時間割データをgraphql用のモデルに変換する */
 func ConvertTimetableFromDbToGraph(dbTimetable *Timetable, user *model.User) *model.Timetable {
 	graphTimetable := &model.Timetable{
-		ID:        strconv.Itoa(dbTimetable.ID),
+		ID:        strconv.Itoa(int(dbTimetable.ID)),
 		Name:      dbTimetable.Name,
 		Days:      dbTimetable.ClassDays,
 		Periods:   dbTimetable.ClassPeriods,
 		CreatedAt: dbTimetable.CreatedAt.String(),
 		UpdatedAt: dbTimetable.UpdatedAt.String(),
 		IsDefault: dbTimetable.IsDefault,
-		Classes:   classes.GetGraphClasses(dbTimetable.ID),
+		Classes:   GetGraphClasses(int(dbTimetable.ID)),
 		//Classtimes: , // todo
 		//RowData: ,
 		User: user,

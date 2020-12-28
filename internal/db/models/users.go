@@ -1,26 +1,31 @@
-package users
+package models
 
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
 	"github.com/mi11km/zikanwarikun-back/pkg/jwt"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/mi11km/zikanwarikun-back/pkg/password"
+	"gorm.io/gorm/clause"
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	School   string `json:"school"`
-	Name     string `json:"name"`
+	ID         string `gorm:"primaryKey"`
+	Email      string
+	Password   string
+	School     string
+	Name       string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	Timetables []*Timetable `gorm:"many2many:user_timetables;"`
 }
 
-func (user *User) CreateUser(input model.NewUser) (string, error) {
-	hashedPassword, err := HashPassword(input.Password)
+func (user *User) Signup(input model.NewUser) (string, error) {
+	hashedPassword, err := password.HashPassword(input.Password)
 	if err != nil {
 		log.Printf("action=create user, status=failed, err=%s", err)
 		return "", err
@@ -32,7 +37,7 @@ func (user *User) CreateUser(input model.NewUser) (string, error) {
 	user.School = input.School
 	user.Name = input.Name
 
-	result := database.Db.Create(&user)
+	result := database.Db.Create(user)
 	if result.Error != nil {
 		log.Printf("action=create user, status=failed, err=%s", result.Error)
 		return "", result.Error
@@ -48,9 +53,7 @@ func (user *User) CreateUser(input model.NewUser) (string, error) {
 	return token, nil
 }
 
-func (user *User) UpdateUser(input *model.UpdateUser, u User) (string, error) {
-	user.Copy(u)
-
+func (user *User) UpdateLoginUser(input *model.UpdateUser, currentUser User) (string, error) {
 	updateData := make(map[string]interface{})
 	if input.Email != nil {
 		updateData["email"] = *input.Email
@@ -63,16 +66,15 @@ func (user *User) UpdateUser(input *model.UpdateUser, u User) (string, error) {
 	}
 	if input.Password != nil {
 		if input.CurrentPassword == nil {
-			log.Printf("action=update user, status=failed, err=currentPassword is not set")
-			return "", fmt.Errorf("to update password, currentPassword is needed")
+			log.Printf("action=update user, status=failed, err=currentPassword is needed when updating password")
+			return "", fmt.Errorf("currentPassword is needed when updating password")
 		}
-		correct := CheckPasswordHash(*input.CurrentPassword, user.Password)
+		correct := password.CheckPasswordHash(*input.CurrentPassword, currentUser.Password)
 		if !correct {
 			log.Printf("action=update user, status=failed, err=currentPassword is wrong")
 			return "", fmt.Errorf("failed to update password. currentPassword is wrong")
 		}
-
-		hashedPassword, err := HashPassword(*input.Password)
+		hashedPassword, err := password.HashPassword(*input.Password)
 		if err != nil {
 			log.Printf("action=update user, status=failed, err=%s", err)
 			return "", err
@@ -80,11 +82,12 @@ func (user *User) UpdateUser(input *model.UpdateUser, u User) (string, error) {
 		updateData["password"] = hashedPassword
 	}
 	if len(updateData) == 0 {
-		log.Printf("action=update user, status=failed, err=update data is not set")
+		log.Printf("action=update user, status=failed, err=update data must be set")
 		return "", fmt.Errorf("update data must be set")
 	}
 
-	result := database.Db.Model(&user).Updates(updateData)
+	user.ID = currentUser.ID
+	result := database.Db.Model(user).Updates(updateData)
 	if result.Error != nil {
 		log.Printf("action=update user, status=failed, err=%s", result.Error)
 		return "", result.Error
@@ -100,17 +103,15 @@ func (user *User) UpdateUser(input *model.UpdateUser, u User) (string, error) {
 	return token, nil
 }
 
-// todo 関連レコードも一括削除する
-func (user *User) DeleteUser(input model.DeleteUser, u User) (bool, error) {
-	user.Copy(u)
-
-	correct := CheckPasswordHash(input.Password, user.Password)
+func (user *User) DeleteLoginUser(input model.DeleteUser, currentUser User) (bool, error) {
+	correct := password.CheckPasswordHash(input.Password, currentUser.Password)
 	if !correct {
 		log.Printf("action=delete user, status=failed, err=password is wrong")
 		return false, fmt.Errorf("failed to delte user. password is wrong")
 	}
 
-	result := database.Db.Delete(&user)
+	user.ID = currentUser.ID
+	result := database.Db.Select(clause.Associations).Delete(user) // todo 関連レコードも一括削除する。できてるか確認できていない
 	if result.Error != nil {
 		log.Printf("action=delete user, status=failed, err=%s", result.Error)
 		return false, result.Error
@@ -121,13 +122,13 @@ func (user *User) DeleteUser(input model.DeleteUser, u User) (bool, error) {
 }
 
 func (user *User) Login(input model.Login) (string, error) {
-	result := database.Db.Select("id", "password").Where("email = ?", input.Email).First(&user)
+	result := database.Db.Select("id", "password").Where("email = ?", input.Email).First(user)
 	if result.Error != nil {
 		log.Printf("action=login, status=failed, err=%s", result.Error)
 		return "", result.Error
 	}
 
-	correct := CheckPasswordHash(input.Password, user.Password)
+	correct := password.CheckPasswordHash(input.Password, user.Password)
 	if !correct {
 		log.Printf("action=login, status=failed, err=email or password is wrong")
 		return "", fmt.Errorf("failed to login. email or password is wrong")
@@ -141,39 +142,4 @@ func (user *User) Login(input model.Login) (string, error) {
 
 	log.Printf("action=login, status=success")
 	return token, nil
-}
-
-func (user *User) RefreshToken(token string) (string, error) {
-	id, err := jwt.ParseToken(token)
-	if err != nil {
-		log.Printf("action=refresh token, status=failed, err=failed to parse token")
-		return "", fmt.Errorf("failed to parse given token")
-	}
-	refreshToken, err := jwt.GenerateToken(id)
-	if err != nil {
-		log.Printf("action=refresh token, status=failed, err=failed to generate token")
-		return "", err
-	}
-	log.Printf("action=refresh token, status=success")
-	return refreshToken, nil
-}
-
-func (user *User) Copy(u User) {
-	user.ID = u.ID
-	user.Email = u.Email
-	user.Password = u.Password
-	user.Name = u.Name
-	user.School = u.School
-}
-
-//HashPassword hashes given password
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
-//CheckPasswordHash compares raw password with it's hashed values
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
 }

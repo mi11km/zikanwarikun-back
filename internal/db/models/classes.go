@@ -1,4 +1,4 @@
-package classes
+package models
 
 import (
 	"fmt"
@@ -7,20 +7,24 @@ import (
 
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
+	"gorm.io/gorm"
 )
 
 type Class struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Day         int    `json:"day"`
-	Periods     int    `json:"period"`
-	Style       string `json:"style"`
-	Color       string `json:"color"`
-	Teacher     string `json:"teacher"`
-	Credit      int    `json:"credit"`
-	RoomOrUrl   string `json:"room_or_url"`
-	Memo        string `json:"memo"`
-	TimetableID int    `json:"timetable_id"`
+	gorm.Model
+	Name        string
+	Days        int
+	Periods     int
+	Style       string
+	RoomOrUrl   string
+	Teacher     string
+	Credit      int
+	Memo        *string
+	Color       string
+	TimetableID uint
+	Todos       []*Todo
+	Attendances []*Attendance
+	Urls        []*Url
 }
 
 func (class *Class) CreateClass(input model.NewClass) (*model.Class, error) {
@@ -32,9 +36,9 @@ func (class *Class) CreateClass(input model.NewClass) (*model.Class, error) {
 	}
 	newClass := &Class{
 		Name:        input.Name,
-		Day:         input.Day,
+		Days:        input.Day,
 		Periods:     input.Period,
-		TimetableID: timetableId,
+		TimetableID: uint(timetableId),
 	}
 	if input.Style != nil {
 		newClass.Style = *input.Style
@@ -89,7 +93,8 @@ func (class *Class) UpdateClass(input model.UpdateClass) (*model.Class, error) {
 		log.Printf("action=update class, status=failed, err=%s", err)
 		return nil, err
 	}
-	dbClass := &Class{ID: id}
+	dbClass := new(Class)
+	dbClass.ID = uint(id)
 
 	result := database.Db.Model(dbClass).Updates(updateData)
 	if result.Error != nil {
@@ -108,7 +113,8 @@ func (class *Class) DeleteClass(input string) (bool, error) {
 		log.Printf("action=delete class, status=failed, err=%s", err)
 		return false, err
 	}
-	dbClass := &Class{ID: id}
+	dbClass := new(Class)
+	dbClass.ID = uint(id)
 
 	result := database.Db.Delete(dbClass)
 	if result.Error != nil {
@@ -131,15 +137,15 @@ func FetchClassesByTimetableId(timetableId int) ([]*Class, error) {
 
 func ConvertClassFromDbToGraph(dbClass *Class) *model.Class {
 	graphClass := &model.Class{
-		ID:        strconv.Itoa(dbClass.ID),
+		ID:        strconv.Itoa(int(dbClass.ID)),
 		Name:      dbClass.Name,
-		Day:       dbClass.Day,
+		Day:       dbClass.Days,
 		Period:    dbClass.Periods,
 		Color:     dbClass.Color,
 		Style:     dbClass.Style,
 		Teacher:   dbClass.Teacher,
 		Credit:    &dbClass.Credit,
-		Memo:      &dbClass.Memo,
+		Memo:      dbClass.Memo,
 		RoomOrURL: dbClass.RoomOrUrl,
 	}
 	return graphClass

@@ -43,3 +43,20 @@ func ParseToken(tokenStr string) (string, error) {
 		return "", err
 	}
 }
+
+// RefreshToken reissue jwt token from given token
+func RefreshToken(token string) (string, error) {
+	id, err := ParseToken(token)
+	if err != nil {
+		log.Printf("action=refresh token, status=failed, err=failed to parse token")
+		return "", fmt.Errorf("failed to parse given token")
+	}
+	refreshToken, err := GenerateToken(id)
+	if err != nil {
+		log.Printf("action=refresh token, status=failed, err=failed to generate token")
+		return "", err
+	}
+
+	log.Printf("action=refresh token, status=success")
+	return refreshToken, nil
+}

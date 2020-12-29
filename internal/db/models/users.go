@@ -9,6 +9,7 @@ import (
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
 	"github.com/mi11km/zikanwarikun-back/pkg/password"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -20,10 +21,11 @@ type User struct {
 	Name       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	Timetables []*Timetable `gorm:"many2many:user_timetables;"`
+	DeletedAt  gorm.DeletedAt `gorm:"index"`
+	Timetables []*Timetable   `gorm:"many2many:user_timetables;"`
 }
 
-func (user *User) CreateUser(input model.NewUser) error {
+func (user *User) Create(input model.NewUser) error {
 	hashedPassword, err := password.HashPassword(input.Password)
 	if err != nil {
 		log.Printf("action=create user, status=failed, err=%s", err)
@@ -44,7 +46,7 @@ func (user *User) CreateUser(input model.NewUser) error {
 	return nil
 }
 
-func (user *User) UpdateLoginUser(input *model.UpdateUser) error {
+func (user *User) Update(input *model.UpdateUser) error {
 	updateData := make(map[string]interface{})
 	if input.Email != nil {
 		updateData["email"] = *input.Email
@@ -81,7 +83,7 @@ func (user *User) UpdateLoginUser(input *model.UpdateUser) error {
 	return nil
 }
 
-func (user *User) DeleteLoginUser(input model.DeleteUser) (bool, error) {
+func (user *User) Delete(input model.DeleteUser) (bool, error) {
 	correct := password.CheckPasswordHash(input.Password, user.Password)
 	if !correct {
 		log.Printf("action=delete user, status=failed, err=password is wrong")

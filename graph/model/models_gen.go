@@ -81,7 +81,6 @@ type Timetable struct {
 	Classes    []*Class            `json:"classes"`
 	Classtimes []*ClassTime        `json:"classtimes"`
 	RowData    []*TimetableRowData `json:"rowData"`
-	User       *User               `json:"user"`
 }
 
 type TimetableRowData struct {

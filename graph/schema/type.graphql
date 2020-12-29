@@ -22,7 +22,6 @@ type Timetable {
     classes: [Class]
     classtimes: [ClassTime]
     rowData: [TimetableRowData]
-    user: User!
 }
 
 type ClassTime {

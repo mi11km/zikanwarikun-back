@@ -101,7 +101,6 @@ type ComplexityRoot struct {
 		Periods    func(childComplexity int) int
 		RowData    func(childComplexity int) int
 		UpdatedAt  func(childComplexity int) int
-		User       func(childComplexity int) int
 	}
 
 	TimetableRowData struct {
@@ -510,13 +509,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Timetable.UpdatedAt(childComplexity), true
 
-	case "Timetable.user":
-		if e.complexity.Timetable.User == nil {
-			break
-		}
-
-		return e.complexity.Timetable.User(childComplexity), true
-
 	case "TimetableRowData.Classes":
 		if e.complexity.TimetableRowData.Classes == nil {
 			break
@@ -730,17 +722,17 @@ input UpdateClass {
 
 `, BuiltIn: false},
 	{Name: "graph/schema/schema.graphql", Input: `type Query {
-    user: User!                            # tokenからログインユーザー情報収録
-    timetable: Timetable!                 # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
-    timetables: [Timetable!]!             # ログインユーザーの時間割の一覧取得
+    user: User!                # tokenからログインユーザー情報収録
+    timetable: Timetable!      # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
+    timetables: [Timetable!]!  # ログインユーザーの時間割の一覧取得
 }
 
 type Mutation {
     signup(input: NewUser!): Auth!
-    updateLoginUser(input: UpdateUser!): Auth!  # passwordのupdateにはcurrentPasswordが必須
+    updateLoginUser(input: UpdateUser!): Auth!
     deleteLoginUser(input: DeleteUser!): Boolean!
     login(input: Login!): Auth!
-    refreshToken: String!  # return token, headerについてるトークンから更新する
+    refreshToken: String!  # return token  headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
     updateTimetable(input: UpdateTimetable!): Timetable!  # idと更新データしか正しい値が返ってこない。
@@ -779,7 +771,6 @@ type Timetable {
     classes: [Class]
     classtimes: [ClassTime]
     rowData: [TimetableRowData]
-    user: User!
 }
 
 type ClassTime {
@@ -2652,41 +2643,6 @@ func (ec *executionContext) _Timetable_rowData(ctx context.Context, field graphq
 	res := resTmp.([]*model.TimetableRowData)
 	fc.Result = res
 	return ec.marshalOTimetableRowData2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTimetableRowData(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Timetable_user(ctx context.Context, field graphql.CollectedField, obj *model.Timetable) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Timetable",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimetableRowData_periods(ctx context.Context, field graphql.CollectedField, obj *model.TimetableRowData) (ret graphql.Marshaler) {
@@ -4954,11 +4910,6 @@ func (ec *executionContext) _Timetable(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._Timetable_classtimes(ctx, field, obj)
 		case "rowData":
 			out.Values[i] = ec._Timetable_rowData(ctx, field, obj)
-		case "user":
-			out.Values[i] = ec._Timetable_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

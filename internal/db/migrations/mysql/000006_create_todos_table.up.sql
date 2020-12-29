@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS todos
     is_repeated BOOLEAN     NOT NULL DEFAULT false,
     created_at  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  DATETIME,
     class_id    INT         NOT NULL,
     FOREIGN KEY (class_id) REFERENCES classes (id),
     PRIMARY KEY (id)

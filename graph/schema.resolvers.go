@@ -9,6 +9,7 @@ import (
 
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
 	"github.com/mi11km/zikanwarikun-back/graph/model"
+	"github.com/mi11km/zikanwarikun-back/internal/convert"
 	"github.com/mi11km/zikanwarikun-back/internal/db/models"
 	"github.com/mi11km/zikanwarikun-back/internal/middleware/auth"
 	"github.com/mi11km/zikanwarikun-back/internal/myerrors"
@@ -24,7 +25,7 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*mo
 	}
 
 	dbUser := &models.User{}
-	err := dbUser.CreateUser(input)
+	err := dbUser.Create(input)
 	if err != nil {
 		log.Printf("action=signup, status=failed, err=%s", err)
 		return nil, err
@@ -34,8 +35,7 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*mo
 		log.Printf("action=signup, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphUser := &model.User{
-		ID: dbUser.ID, Email: dbUser.Email, Name: dbUser.Name, School: dbUser.School}
+	graphUser := convert.ToGraphQLUser(dbUser)
 	log.Printf("action=signup, status=success")
 	return &model.Auth{User: graphUser, Token: token}, nil
 }
@@ -47,7 +47,7 @@ func (r *mutationResolver) UpdateLoginUser(ctx context.Context, input model.Upda
 		log.Printf("action=update login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	err := auth.User.UpdateLoginUser(&input)
+	err := auth.User.Update(&input)
 	if err != nil {
 		log.Printf("action=update login user, status=failed, err=%s", err)
 		return nil, err
@@ -57,8 +57,7 @@ func (r *mutationResolver) UpdateLoginUser(ctx context.Context, input model.Upda
 		log.Printf("action=update login user, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphUser := &model.User{
-		ID: auth.User.ID, Email: auth.User.Email, Name: auth.User.Name, School: auth.User.School}
+	graphUser := convert.ToGraphQLUser(auth.User)
 	log.Printf("action=update login user, status=success")
 	return &model.Auth{User: graphUser, Token: token}, nil
 }
@@ -70,7 +69,7 @@ func (r *mutationResolver) DeleteLoginUser(ctx context.Context, input model.Dele
 		log.Printf("action=delete user, status=failed, err=%s", err.Error())
 		return false, err
 	}
-	return auth.User.DeleteLoginUser(input)
+	return auth.User.Delete(input)
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (*model.Auth, error) {
@@ -91,8 +90,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (*model
 		log.Printf("action=login, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphUser := &model.User{
-		ID: dbUser.ID, Email: dbUser.Email, Name: dbUser.Name, School: dbUser.School} // todo timetablesも入れる
+	graphUser := convert.ToGraphQLUser(dbUser)
 	log.Printf("action=login, status=success")
 	return &model.Auth{User: graphUser, Token: token}, nil
 }
@@ -114,7 +112,14 @@ func (r *mutationResolver) CreateTimetable(ctx context.Context, input model.NewT
 		log.Printf("action=create timetable, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	panic("not implement")
+	dbTimetable := &models.Timetable{}
+	err := dbTimetable.Create(input, *auth.User)
+	if err != nil {
+		log.Printf("action=create timetable, status=failed, err=%s", err)
+		return nil, err
+	}
+	graphTimetable := convert.ToGraphQLTimetable(dbTimetable)
+	return graphTimetable, nil
 }
 
 func (r *mutationResolver) UpdateTimetable(ctx context.Context, input model.UpdateTimetable) (*model.Timetable, error) {
@@ -124,7 +129,14 @@ func (r *mutationResolver) UpdateTimetable(ctx context.Context, input model.Upda
 		log.Printf("action=update timetable, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	panic("not implement")
+	dbTimetable := models.FetchTimetableById(input.ID)
+	err := dbTimetable.Update(input, *auth.User)
+	if err != nil {
+		log.Printf("action=update timetable, status=failed, err=%s", err)
+		return nil, err
+	}
+	graphTimetable := convert.ToGraphQLTimetable(dbTimetable)
+	return graphTimetable, nil
 }
 
 func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (bool, error) {
@@ -134,7 +146,8 @@ func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (b
 		log.Printf("action=delete timetable, status=failed, err=%s", err.Error())
 		return false, err
 	}
-	panic("not implement")
+	dbTimetable := &models.Timetable{}
+	return dbTimetable.Delete(input)
 }
 
 func (r *mutationResolver) CreateClass(ctx context.Context, input model.NewClass) (*model.Class, error) {
@@ -191,46 +204,33 @@ func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	auth := auth.GetAuthInfoFromCtx(ctx)
 	if auth == nil {
 		err := &myerrors.UnauthenticatedUserAccessError{}
-		log.Printf("action=get current user data, status=failed, err=%s", err.Error())
+		log.Printf("action=get login user data, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	graphqlUser := &model.User{
-		ID:     auth.User.ID,
-		Email:  auth.User.Email,
-		School: auth.User.School,
-		Name:   auth.User.Name,
-	}
-	dbTimetables, err := models.FetchTimetablesByUserId(auth.User.ID)
+	timetables, err := models.FetchTimetablesByUser(*auth.User)
 	if err != nil {
-		log.Printf("action=get current user data, status=failed, err=%s", err)
+		log.Printf("action=get login user data, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphTimetables := models.ConvertTimetablesFromDbToGraph(dbTimetables, graphqlUser)
-	graphqlUser.Timetables = graphTimetables
-	log.Printf("action=get current user data, status=success")
-	return graphqlUser, nil
+	auth.User.Timetables = timetables
+	graphUser := convert.ToGraphQLUser(auth.User)
+	log.Printf("action=get login user data, status=success")
+	return graphUser, nil
 }
 
 func (r *queryResolver) Timetable(ctx context.Context) (*model.Timetable, error) {
 	auth := auth.GetAuthInfoFromCtx(ctx)
 	if auth == nil {
 		err := &myerrors.UnauthenticatedUserAccessError{}
-		log.Printf("action=get default timetable, status=failed, err=%s", err.Error())
+		log.Printf("action=get default timetable of login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	graphUser := &model.User{
-		ID:     auth.User.ID,
-		Email:  auth.User.Email,
-		School: auth.User.School,
-		Name:   auth.User.Name,
-	}
-	dbTimetables, err := models.FetchDefaultTimetableByUserId(auth.User.ID)
+	dbDefaultTimetable, err := models.FetchDefaultTimetableByUser(*auth.User)
 	if err != nil {
-		log.Printf("action=get default timetable, status=failed, err=%s", err)
+		log.Printf("action=get default timetable of login user, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphTimetable := models.ConvertTimetableFromDbToGraph(dbTimetables, graphUser)
-	log.Printf("action=get default timetable, status=success")
+	graphTimetable := convert.ToGraphQLTimetable(dbDefaultTimetable)
 	return graphTimetable, nil
 }
 
@@ -238,22 +238,15 @@ func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, err
 	auth := auth.GetAuthInfoFromCtx(ctx)
 	if auth == nil {
 		err := &myerrors.UnauthenticatedUserAccessError{}
-		log.Printf("action=get all timetables, status=failed, err=%s", err.Error())
+		log.Printf("action=get all timetables of login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	graphUser := &model.User{
-		ID:     auth.User.ID,
-		Email:  auth.User.Email,
-		School: auth.User.School,
-		Name:   auth.User.Name,
-	}
-	dbTimetables, err := models.FetchTimetablesByUserId(auth.User.ID)
+	dbTimetables, err := models.FetchTimetablesByUser(*auth.User)
 	if err != nil {
-		log.Printf("action=get all timetables, status=failed, err=%s", err)
+		log.Printf("action=get all timetables of login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	graphTimetables := models.ConvertTimetablesFromDbToGraph(dbTimetables, graphUser)
-	log.Printf("action=get all timetables, status=success")
+	graphTimetables := convert.ToGraphQLTimetables(dbTimetables)
 	return graphTimetables, nil
 }
 

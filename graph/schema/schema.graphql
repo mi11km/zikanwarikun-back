@@ -1,15 +1,15 @@
 type Query {
-    user: User!                           # tokenからログインユーザー情報収録
-    timetable: Timetable!                 # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
-    timetables: [Timetable!]!             # ログインユーザーの時間割の一覧取得
+    user: User!                # tokenからログインユーザー情報収録
+    timetable: Timetable!      # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
+    timetables: [Timetable!]!  # ログインユーザーの時間割の一覧取得
 }
 
 type Mutation {
-    createUser(input: NewUser!): String!              # return token
-    updateUser(input: UpdateUser!): String!           # return token, passwordのupdateにはcurrentPasswordが必須
-    deleteUser(input: DeleteUser!): Boolean!
-    login(input: Login!): String!                     # return token
-    refreshToken: String!                             # return token, headerについてるトークンから更新する
+    signup(input: NewUser!): Auth!
+    updateLoginUser(input: UpdateUser!): Auth!
+    deleteLoginUser(input: DeleteUser!): Boolean!
+    login(input: Login!): Auth!
+    refreshToken: String!  # return token  headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
     updateTimetable(input: UpdateTimetable!): Timetable!  # idと更新データしか正しい値が返ってこない。

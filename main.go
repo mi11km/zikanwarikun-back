@@ -12,7 +12,6 @@ import (
 	"github.com/mi11km/zikanwarikun-back/graph"
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
-	"github.com/mi11km/zikanwarikun-back/internal/db/models"
 	"github.com/mi11km/zikanwarikun-back/internal/middleware/auth"
 	"github.com/rs/cors"
 )
@@ -41,12 +40,7 @@ func main() {
 	}).Handler)
 	router.Use(auth.Middleware())
 
-	resolvers := &graph.Resolver{
-		UserService:      new(models.User),
-		TimetableService: new(models.Timetable),
-		ClassService:     new(models.Class),
-		ClassTimeService: new(models.ClassTime),
-	}
+	resolvers := &graph.Resolver{}
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))

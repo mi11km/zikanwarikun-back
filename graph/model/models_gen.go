@@ -2,6 +2,11 @@
 
 package model
 
+type Auth struct {
+	User  *User  `json:"user"`
+	Token string `json:"token"`
+}
+
 type Class struct {
 	ID        string  `json:"id"`
 	Name      string  `json:"name"`
@@ -114,17 +119,21 @@ type UpdateTimetable struct {
 }
 
 type UpdateUser struct {
-	Email           *string `json:"email"`
-	Password        *string `json:"password"`
-	School          *string `json:"school"`
-	Name            *string `json:"name"`
-	CurrentPassword *string `json:"currentPassword"`
+	Email    *string         `json:"email"`
+	School   *string         `json:"school"`
+	Name     *string         `json:"name"`
+	Password *UpdatePassword `json:"password"`
 }
 
 type User struct {
 	ID         string       `json:"id"`
 	Email      string       `json:"email"`
-	School     *string      `json:"school"`
-	Name       *string      `json:"name"`
+	School     string       `json:"school"`
+	Name       string       `json:"name"`
 	Timetables []*Timetable `json:"timetables"`
+}
+
+type UpdatePassword struct {
+	New     string `json:"new"`
+	Current string `json:"current"`
 }

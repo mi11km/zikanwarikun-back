@@ -1,9 +1,14 @@
 type User {
     id: ID!
     email: String!
-    school: String
-    name: String
+    school: String!
+    name: String!
     timetables: [Timetable]
+}
+
+type Auth {
+    user: User!
+    token: String!
 }
 
 type Timetable {
@@ -46,3 +51,4 @@ type TimetableRowData {
     startTime: String!
     endTime: String!
 }
+

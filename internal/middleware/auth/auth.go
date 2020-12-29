@@ -61,8 +61,8 @@ func Middleware() func(http.Handler) http.Handler {
 	}
 }
 
-// ForContext finds the user from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) *Auth {
+// GetAuthInfoFromCtx finds the user and token from the context. REQUIRES Middleware to have run.
+func GetAuthInfoFromCtx(ctx context.Context) *Auth {
 	raw, _ := ctx.Value(authCtxKey).(*Auth)
 	return raw
 }

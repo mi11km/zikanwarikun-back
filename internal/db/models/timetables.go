@@ -47,8 +47,8 @@ func (t *Timetable) CreateTimetable(input model.NewTimetable, user User) (*model
 	graphUser := &model.User{
 		ID:     user.ID,
 		Email:  user.Email,
-		School: &user.School,
-		Name:   &user.Name,
+		School: user.School,
+		Name:   user.Name,
 	}
 	graphTimetables := ConvertTimetablesFromDbToGraph(dbTimetables, graphUser)
 	graphUser.Timetables = graphTimetables
@@ -98,8 +98,8 @@ func (t *Timetable) UpdateTimetable(input model.UpdateTimetable, user User) (*mo
 	graphUser := &model.User{
 		ID:     user.ID,
 		Email:  user.Email,
-		School: &user.School,
-		Name:   &user.Name,
+		School: user.School,
+		Name:   user.Name,
 	}
 	graphTimetable := ConvertTimetableFromDbToGraph(dbTimetable, graphUser)
 

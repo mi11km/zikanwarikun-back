@@ -9,6 +9,7 @@ import (
 	"github.com/mi11km/zikanwarikun-back/graph/model"
 	database "github.com/mi11km/zikanwarikun-back/internal/db"
 	"github.com/mi11km/zikanwarikun-back/pkg/password"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -20,7 +21,8 @@ type User struct {
 	Name       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
-	Timetables []*Timetable `gorm:"many2many:user_timetables;"`
+	DeletedAt  gorm.DeletedAt `gorm:"index"`
+	Timetables []*Timetable   `gorm:"many2many:user_timetables;"`
 }
 
 func (user *User) Create(input model.NewUser) error {

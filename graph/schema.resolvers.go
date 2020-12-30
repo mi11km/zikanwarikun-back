@@ -157,7 +157,12 @@ func (r *mutationResolver) CreateClass(ctx context.Context, input model.NewClass
 		log.Printf("action=create class, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	panic("not implement")
+	dbClass := &models.Class{}
+	if err := dbClass.Create(input); err != nil {
+		log.Printf("action=create class, status=failed, err=%s", err)
+		return nil, err
+	}
+	return convert.ToGraphQLClass(dbClass), nil
 }
 
 func (r *mutationResolver) UpdateClass(ctx context.Context, input model.UpdateClass) (*model.Class, error) {
@@ -167,7 +172,12 @@ func (r *mutationResolver) UpdateClass(ctx context.Context, input model.UpdateCl
 		log.Printf("action=update class, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	panic("not implement")
+	dbClass := models.FetchClassById(input.ID)
+	if err := dbClass.Update(input); err != nil {
+		log.Printf("action=update class, status=failed, err=%s", err)
+		return nil, err
+	}
+	return convert.ToGraphQLClass(dbClass), nil
 }
 
 func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool, error) {
@@ -177,7 +187,8 @@ func (r *mutationResolver) DeleteClass(ctx context.Context, input string) (bool,
 		log.Printf("action=delete class, status=failed, err=%s", err.Error())
 		return false, err
 	}
-	panic("not implement")
+	dbClass := &models.Class{}
+	return dbClass.Delete(input)
 }
 
 func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewClassTime) (*model.ClassTime, error) {
@@ -223,6 +234,7 @@ func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 		return nil, err
 	}
 	models.SetClassTimesToEachTimetable(timetables)
+	models.SetClassesToEachTimetable(timetables)
 	auth.User.Timetables = timetables
 	graphUser := convert.ToGraphQLUser(auth.User)
 	log.Printf("action=get login user data, status=success")
@@ -258,6 +270,7 @@ func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, err
 		return nil, err
 	}
 	models.SetClassTimesToEachTimetable(dbTimetables)
+	models.SetClassesToEachTimetable(dbTimetables)
 	graphTimetables := convert.ToGraphQLTimetables(dbTimetables)
 	return graphTimetables, nil
 }

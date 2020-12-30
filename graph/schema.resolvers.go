@@ -222,6 +222,7 @@ func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 		log.Printf("action=get login user data, status=failed, err=%s", err)
 		return nil, err
 	}
+	models.SetClassTimesToEachTimetable(timetables)
 	auth.User.Timetables = timetables
 	graphUser := convert.ToGraphQLUser(auth.User)
 	log.Printf("action=get login user data, status=success")
@@ -256,6 +257,7 @@ func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, err
 		log.Printf("action=get all timetables of login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
+	models.SetClassTimesToEachTimetable(dbTimetables)
 	graphTimetables := convert.ToGraphQLTimetables(dbTimetables)
 	return graphTimetables, nil
 }

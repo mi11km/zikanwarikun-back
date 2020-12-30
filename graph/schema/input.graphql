@@ -46,17 +46,15 @@ input UpdateTimetable {
 
 input NewClassTime {
     period: Int!
-    startTime: String
-    endTime: String
+    startTime: String!
+    endTime: String!
     timetableId: ID!
 }
 
 input UpdateClassTime {
     id: ID!
-    period: Int!
     startTime: String
     endTime: String
-    timetableId: ID!
 }
 
 input NewClass {

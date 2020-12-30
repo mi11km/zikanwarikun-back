@@ -16,7 +16,7 @@ type Timetable {
     name: String!
     days: Int!           # 平日、平日＋土、毎日
     periods: Int!        # 時限数
-    createdAt: String!   # todo datetime型はどうすればいいのか？
+    createdAt: String!   # todo datetime型
     updatedAt: String!
     isDefault: Boolean!
     classes: [Class]
@@ -27,8 +27,8 @@ type Timetable {
 type ClassTime {
     id: ID!
     period: Int!        # 時限
-    startTime: String   # todo time型 ex) 9:00
-    endTime: String
+    startTime: String!  # todo time型 ex) 16:00
+    endTime: String!
 }
 
 type Class {

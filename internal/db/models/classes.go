@@ -27,40 +27,38 @@ type Class struct {
 	Urls        []*Url
 }
 
-func (class *Class) CreateClass(input model.NewClass) (*model.Class, error) {
-	// todo 曜日と時限がかぶってる授業が既にデータベースにないか確認する(フロント側にまかせてもいいかも)
+func (class *Class) Create(input model.NewClass) error {
+	// todo? 曜日と時限がかぶってる授業が既にデータベースにないか確認する(フロント側にまかせてもいいかも)
 	timetableId, err := strconv.Atoi(input.TimetableID)
 	if err != nil {
-		log.Printf("action=create class, status=failed, err=%s", err)
-		return nil, err
+		log.Printf("action=create class data, status=failed, err=%s", err)
+		return err
 	}
-	newClass := &Class{
-		Name:        input.Name,
-		Days:        input.Day,
-		Periods:     input.Period,
-		TimetableID: uint(timetableId),
-	}
+
+	class.Name = input.Name
+	class.Days = input.Day
+	class.Periods = input.Period
+	class.TimetableID = uint(timetableId)
+
 	if input.Style != nil {
-		newClass.Style = *input.Style
+		class.Style = *input.Style
 	}
 	if input.Teacher != nil {
-		newClass.Teacher = *input.Teacher
+		class.Teacher = *input.Teacher
 	}
 	if input.RoomOrURL != nil {
-		newClass.RoomOrUrl = *input.RoomOrURL
+		class.RoomOrUrl = *input.RoomOrURL
 	}
-	result := database.Db.Create(newClass)
-	if result.Error != nil {
-		log.Printf("action=create class, status=failed, err=%s", result.Error)
-		return nil, result.Error
+	if err := database.Db.Create(class).Error; err != nil {
+		log.Printf("action=create class data, status=failed, err=%s", err)
+		return err
 	}
-	graphClass := ConvertClassFromDbToGraph(newClass)
 
 	log.Printf("action=create class, status=success")
-	return graphClass, nil
+	return nil
 }
 
-func (class *Class) UpdateClass(input model.UpdateClass) (*model.Class, error) {
+func (class *Class) Update(input model.UpdateClass) error {
 	updateData := make(map[string]interface{})
 	if input.Name != nil {
 		updateData["name"] = *input.Name
@@ -84,87 +82,67 @@ func (class *Class) UpdateClass(input model.UpdateClass) (*model.Class, error) {
 		updateData["room_or_url"] = *input.RoomOrURL
 	}
 	if len(updateData) == 0 {
-		log.Printf("action=update class, status=failed, err=update data is not set")
-		return nil, fmt.Errorf("update data must be set")
+		log.Printf("action=update class data, status=failed, err=update data is not set")
+		return fmt.Errorf("update data must be set")
 	}
 
-	id, err := strconv.Atoi(input.ID)
-	if err != nil {
-		log.Printf("action=update class, status=failed, err=%s", err)
-		return nil, err
+	if err := database.Db.Model(class).Updates(updateData).Error; err != nil {
+		log.Printf("action=update class data, status=failed, err=%s", err)
+		return err
 	}
-	dbClass := new(Class)
-	dbClass.ID = uint(id)
-
-	result := database.Db.Model(dbClass).Updates(updateData)
-	if result.Error != nil {
-		log.Printf("action=update class, status=failed, err=%s", result.Error)
-		return nil, result.Error
-	}
-	graphClass := ConvertClassFromDbToGraph(dbClass)
-
-	log.Printf("action=update class, status=success")
-	return graphClass, nil
+	log.Printf("action=update class data, status=success")
+	return nil
 }
 
-func (class *Class) DeleteClass(input string) (bool, error) {
+func (class *Class) Delete(input string) (bool, error) {
 	id, err := strconv.Atoi(input)
 	if err != nil {
-		log.Printf("action=delete class, status=failed, err=%s", err)
+		log.Printf("action=delete class data, status=failed, err=%s", err)
 		return false, err
 	}
-	dbClass := new(Class)
-	dbClass.ID = uint(id)
+	class.ID = uint(id)
 
-	result := database.Db.Delete(dbClass)
-	if result.Error != nil {
-		log.Printf("action=delete class, status=failed, err=%s", result.Error)
-		return false, result.Error
+	// todo 関連レコードも削除できてるか？
+	if err := database.Db.Select("Todo", "Attendance", "Url").Delete(class).Error; err != nil {
+		log.Printf("action=delete class data, status=failed, err=%s", err)
+		return false, err
 	}
-
-	log.Printf("action=delete class, status=success")
+	log.Printf("action=delete class data, status=success")
 	return true, nil
 }
 
-func FetchClassesByTimetableId(timetableId int) ([]*Class, error) {
+func FetchClassById(id string) *Class {
+	i, err := strconv.Atoi(id)
+	if err != nil {
+		log.Printf("action=fetch class data by id, status=failed, err=%s", err)
+		return nil
+	}
+	class := &Class{}
+	class.ID = uint(i)
+	if err := database.Db.First(class).Error; err != nil {
+		log.Printf("action=fetch class data by id, status=failed, err=%s", err)
+		return nil
+	}
+	return class
+}
+
+/* FetchClassesByTimetable 指定した時間割の授業・科目データを全て取得する */
+func FetchClassesByTimetable(timetable Timetable) ([]*Class, error) {
 	var classes []*Class
-	result := database.Db.Where("timetable_id = ?", timetableId).Find(&classes)
-	if result.Error != nil {
-		return nil, result.Error
+	if err := database.Db.Where("timetable_id = ?", timetable.ID).Find(&classes).Error; err != nil {
+		return nil, err
 	}
 	return classes, nil
 }
 
-func ConvertClassFromDbToGraph(dbClass *Class) *model.Class {
-	graphClass := &model.Class{
-		ID:        strconv.Itoa(int(dbClass.ID)),
-		Name:      dbClass.Name,
-		Day:       dbClass.Days,
-		Period:    dbClass.Periods,
-		Color:     dbClass.Color,
-		Style:     dbClass.Style,
-		Teacher:   dbClass.Teacher,
-		Credit:    &dbClass.Credit,
-		Memo:      dbClass.Memo,
-		RoomOrURL: dbClass.RoomOrUrl,
+func SetClassesToEachTimetable(timetables []*Timetable) {
+	if len(timetables) == 0 {
+		return
 	}
-	return graphClass
-}
-
-func ConvertClassesFromDbToGraph(dbClasses []*Class) []*model.Class {
-	var graphClasses []*model.Class
-	for _, dbClass := range dbClasses {
-		graphClass := ConvertClassFromDbToGraph(dbClass)
-		graphClasses = append(graphClasses, graphClass)
+	for _, t := range timetables {
+		classes, err := FetchClassesByTimetable(*t)
+		if err == nil {
+			t.Classes = classes
+		}
 	}
-	return graphClasses
-}
-
-func GetGraphClasses(timetableId int) []*model.Class {
-	dbClasses, err := FetchClassesByTimetableId(timetableId)
-	if err != nil {
-		log.Printf("action=fetch classes data, status=failed, err=%s", err)
-		return nil
-	}
-	return ConvertClassesFromDbToGraph(dbClasses)
 }

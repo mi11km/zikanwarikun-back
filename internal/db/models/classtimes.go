@@ -21,7 +21,7 @@ type ClassTime struct {
 // todo 時刻計算をバックエンドでやるべきかわからない。現在単純なstring型で管理保存。
 
 func (ct *ClassTime) Create(input model.NewClassTime) error {
-	// todo? periodsとtimetable_idが完全一致するものがないか確認
+	// todo? periodsとtimetable_idが完全一致するものがないか確認(フロント側にまかせてもいいかも)
 	id, err := strconv.Atoi(input.TimetableID)
 	if err != nil {
 		log.Printf("action=create class_time data, status=failed, err=%s", err)

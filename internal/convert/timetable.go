@@ -16,11 +16,13 @@ func ToGraphQLTimetable(dbTimetable *models.Timetable) *model.Timetable {
 		CreatedAt: dbTimetable.CreatedAt.String(),
 		UpdatedAt: dbTimetable.UpdatedAt.String(),
 		IsDefault: dbTimetable.IsDefault,
-		//Classes: , todo
-		//RowData: ,
+		//RowData: , todo
 	}
-	if graphClassTimes :=ToGraphQLClassTimes(dbTimetable.ClassTimes); graphClassTimes != nil {
+	if graphClassTimes := ToGraphQLClassTimes(dbTimetable.ClassTimes); graphClassTimes != nil {
 		graphTimetable.Classtimes = graphClassTimes
+	}
+	if graphClasses := ToGraphQLClasses(dbTimetable.Classes); graphClasses != nil {
+		graphTimetable.Classes = graphClasses
 	}
 	return graphTimetable
 }

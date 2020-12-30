@@ -44,16 +44,16 @@ func (t *Timetable) Create(input model.NewTimetable, user User) error {
 
 func (t *Timetable) Update(input model.UpdateTimetable, user User) error {
 	updateData := make(map[string]interface{})
-	if input.Name != nil {
+	if input.Name != nil && *input.Name != t.Name {
 		updateData["name"] = *input.Name
 	}
-	if input.Days != nil {
+	if input.Days != nil && *input.Days != t.ClassDays {
 		updateData["class_days"] = *input.Days
 	}
-	if input.Periods != nil {
+	if input.Periods != nil && *input.Periods != t.ClassPeriods {
 		updateData["class_periods"] = *input.Periods
 	}
-	if input.IsDefault != nil {
+	if input.IsDefault != nil && *input.IsDefault != t.IsDefault {
 		updateData["is_default"] = *input.IsDefault
 		if *input.IsDefault {
 			if err := ChangeIsDefaultToFalse(user); err != nil {
@@ -63,8 +63,8 @@ func (t *Timetable) Update(input model.UpdateTimetable, user User) error {
 		}
 	}
 	if len(updateData) == 0 {
-		log.Printf("action=update timetable data, status=failed, err=update data is not set")
-		return fmt.Errorf("update data must be set")
+		log.Printf("action=update timetable data, status=failed, err=update data is not set or the only same data id set")
+		return fmt.Errorf("update data must be set or the only same data id set")
 	}
 
 	if err := database.Db.Model(t).Updates(updateData).Error; err != nil {

@@ -57,30 +57,30 @@ func (class *Class) Create(input model.NewClass) error {
 
 func (class *Class) Update(input model.UpdateClass) error {
 	updateData := make(map[string]interface{})
-	if input.Name != nil {
+	if input.Name != nil && *input.Name != class.Name {
 		updateData["name"] = *input.Name
 	}
-	if input.Color != nil {
+	if input.Color != nil && *input.Color != class.Color {
 		updateData["color"] = *input.Color
 	}
-	if input.Style != nil {
+	if input.Style != nil && *input.Style != class.Style {
 		updateData["style"] = *input.Style
 	}
-	if input.Teacher != nil {
+	if input.Teacher != nil && *input.Teacher != class.Teacher {
 		updateData["teacher"] = *input.Teacher
 	}
-	if input.Credit != nil {
+	if input.Credit != nil && *input.Credit != class.Credit {
 		updateData["credit"] = *input.Credit
 	}
-	if input.Memo != nil {
+	if input.Memo != nil && *input.Memo != *class.Memo {
 		updateData["memo"] = *input.Memo
 	}
-	if input.RoomOrURL != nil {
+	if input.RoomOrURL != nil && *input.RoomOrURL != class.RoomOrUrl {
 		updateData["room_or_url"] = *input.RoomOrURL
 	}
 	if len(updateData) == 0 {
-		log.Printf("action=update class data, status=failed, err=update data is not set")
-		return fmt.Errorf("update data must be set")
+		log.Printf("action=update class data, status=failed, err=update data is not set or the only same data id set")
+		return fmt.Errorf("update data must be set or the only same data id set")
 	}
 
 	if err := database.Db.Model(class).Updates(updateData).Error; err != nil {
@@ -99,7 +99,7 @@ func (class *Class) Delete(input string) (bool, error) {
 	}
 	class.ID = uint(id)
 
-	if err := database.Db.Select("Todo", "Attendance", "Url").Delete(class).Error; err != nil {  // todo 関連レコードも削除できてるか確認
+	if err := database.Db.Select("Todo", "Attendance", "Url").Delete(class).Error; err != nil { // todo 関連レコードも削除できてるか確認
 		log.Printf("action=delete class data, status=failed, err=%s", err)
 		return false, err
 	}

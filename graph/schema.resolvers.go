@@ -23,10 +23,8 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*mo
 		log.Printf("action=signup, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-
 	dbUser := &models.User{}
-	err := dbUser.Create(input)
-	if err != nil {
+	if err := dbUser.Create(input); err != nil {
 		log.Printf("action=signup, status=failed, err=%s", err)
 		return nil, err
 	}
@@ -35,9 +33,8 @@ func (r *mutationResolver) Signup(ctx context.Context, input model.NewUser) (*mo
 		log.Printf("action=signup, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphUser := convert.ToGraphQLUser(dbUser)
 	log.Printf("action=signup, status=success")
-	return &model.Auth{User: graphUser, Token: token}, nil
+	return &model.Auth{User: convert.ToGraphQLUser(dbUser), Token: token}, nil
 }
 
 func (r *mutationResolver) UpdateLoginUser(ctx context.Context, input model.UpdateUser) (*model.Auth, error) {
@@ -47,8 +44,7 @@ func (r *mutationResolver) UpdateLoginUser(ctx context.Context, input model.Upda
 		log.Printf("action=update login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	err := auth.User.Update(&input)
-	if err != nil {
+	if err := auth.User.Update(&input); err != nil {
 		log.Printf("action=update login user, status=failed, err=%s", err)
 		return nil, err
 	}
@@ -57,9 +53,8 @@ func (r *mutationResolver) UpdateLoginUser(ctx context.Context, input model.Upda
 		log.Printf("action=update login user, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphUser := convert.ToGraphQLUser(auth.User)
 	log.Printf("action=update login user, status=success")
-	return &model.Auth{User: graphUser, Token: token}, nil
+	return &model.Auth{User: convert.ToGraphQLUser(auth.User), Token: token}, nil
 }
 
 func (r *mutationResolver) DeleteLoginUser(ctx context.Context, input model.DeleteUser) (bool, error) {
@@ -80,8 +75,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (*model
 		return nil, err
 	}
 	dbUser := &models.User{}
-	err := dbUser.Login(input)
-	if err != nil {
+	if err := dbUser.Login(input); err != nil {
 		log.Printf("action=login, status=failed, err=%s", err)
 		return nil, err
 	}
@@ -90,9 +84,8 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (*model
 		log.Printf("action=login, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphUser := convert.ToGraphQLUser(dbUser)
 	log.Printf("action=login, status=success")
-	return &model.Auth{User: graphUser, Token: token}, nil
+	return &model.Auth{User: convert.ToGraphQLUser(dbUser), Token: token}, nil
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context) (string, error) {
@@ -113,13 +106,11 @@ func (r *mutationResolver) CreateTimetable(ctx context.Context, input model.NewT
 		return nil, err
 	}
 	dbTimetable := &models.Timetable{}
-	err := dbTimetable.Create(input, *auth.User)
-	if err != nil {
+	if err := dbTimetable.Create(input, *auth.User); err != nil {
 		log.Printf("action=create timetable, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphTimetable := convert.ToGraphQLTimetable(dbTimetable)
-	return graphTimetable, nil
+	return convert.ToGraphQLTimetable(dbTimetable), nil
 }
 
 func (r *mutationResolver) UpdateTimetable(ctx context.Context, input model.UpdateTimetable) (*model.Timetable, error) {
@@ -130,13 +121,11 @@ func (r *mutationResolver) UpdateTimetable(ctx context.Context, input model.Upda
 		return nil, err
 	}
 	dbTimetable := models.FetchTimetableById(input.ID)
-	err := dbTimetable.Update(input, *auth.User)
-	if err != nil {
+	if err := dbTimetable.Update(input, *auth.User); err != nil {
 		log.Printf("action=update timetable, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphTimetable := convert.ToGraphQLTimetable(dbTimetable)
-	return graphTimetable, nil
+	return convert.ToGraphQLTimetable(dbTimetable), nil
 }
 
 func (r *mutationResolver) DeleteTimetable(ctx context.Context, input string) (bool, error) {
@@ -253,8 +242,8 @@ func (r *queryResolver) Timetable(ctx context.Context) (*model.Timetable, error)
 		log.Printf("action=get default timetable of login user, status=failed, err=%s", err)
 		return nil, err
 	}
-	graphTimetable := convert.ToGraphQLTimetable(dbDefaultTimetable)
-	return graphTimetable, nil
+	// todo classやclass_timeをセットしてない　というかそもそもこのAPIつかう？
+	return convert.ToGraphQLTimetable(dbDefaultTimetable), nil
 }
 
 func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, error) {

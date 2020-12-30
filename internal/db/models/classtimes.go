@@ -40,15 +40,15 @@ func (ct *ClassTime) Create(input model.NewClassTime) error {
 }
 func (ct *ClassTime) Update(input model.UpdateClassTime) error {
 	updateData := make(map[string]interface{})
-	if input.StartTime != nil {
+	if input.StartTime != nil && *input.StartTime != ct.StartTime {
 		updateData["start_time"] = *input.StartTime
 	}
-	if input.EndTime != nil {
+	if input.EndTime != nil && *input.EndTime != ct.EndTime {
 		updateData["end_time"] = *input.EndTime
 	}
 	if len(updateData) == 0 {
-		log.Printf("action=update class_time data, status=failed, err=update data is not set")
-		return fmt.Errorf("update data must be set")
+		log.Printf("action=update class_time data, status=failed, err=update data is not set or the only same data id set")
+		return fmt.Errorf("update data must be set or the only same data id set")
 	}
 
 	if err := database.Db.Model(ct).Updates(updateData).Error; err != nil {

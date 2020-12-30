@@ -45,13 +45,13 @@ func (user *User) Create(input model.NewUser) error {
 
 func (user *User) Update(input *model.UpdateUser) error {
 	updateData := make(map[string]interface{})
-	if input.Email != nil {
+	if input.Email != nil && *input.Email != user.Email {
 		updateData["email"] = *input.Email
 	}
-	if input.School != nil {
+	if input.School != nil && *input.School != user.School {
 		updateData["school"] = *input.School
 	}
-	if input.Name != nil {
+	if input.Name != nil && *input.Name != user.Name {
 		updateData["name"] = *input.Name
 	}
 	if input.Password != nil {
@@ -67,8 +67,8 @@ func (user *User) Update(input *model.UpdateUser) error {
 		updateData["password"] = hashedPassword
 	}
 	if len(updateData) == 0 {
-		log.Printf("action=update login user data, status=failed, err=update data must be set")
-		return fmt.Errorf("update data must be set")
+		log.Printf("action=update login user data, status=failed, err=update data must be set or the only same data id set")
+		return fmt.Errorf("update data must be set or the only same data id set")
 	}
 
 	if err := database.Db.Model(user).Updates(updateData).Error; err != nil {

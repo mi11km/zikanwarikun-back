@@ -187,7 +187,12 @@ func (r *mutationResolver) CreateClassTime(ctx context.Context, input model.NewC
 		log.Printf("action=create class time, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	panic("not implement")
+	dbClassTime := &models.ClassTime{}
+	if err := dbClassTime.Create(input); err != nil {
+		log.Printf("action=create class time, status=failed, err=%s", err)
+		return nil, err
+	}
+	return convert.ToGraphQLClassTime(dbClassTime), nil
 }
 
 func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.UpdateClassTime) (*model.ClassTime, error) {
@@ -197,7 +202,12 @@ func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.Upda
 		log.Printf("action=update class time, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	panic("not implement")
+	dbClassTime := models.FetchClassTimeById(input.ID)
+	if err := dbClassTime.Update(input); err != nil {
+		log.Printf("action=update class time, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return convert.ToGraphQLClassTime(dbClassTime), nil
 }
 
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {

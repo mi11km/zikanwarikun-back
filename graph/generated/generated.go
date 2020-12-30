@@ -684,17 +684,15 @@ input UpdateTimetable {
 
 input NewClassTime {
     period: Int!
-    startTime: String
-    endTime: String
+    startTime: String!
+    endTime: String!
     timetableId: ID!
 }
 
 input UpdateClassTime {
     id: ID!
-    period: Int!
     startTime: String
     endTime: String
-    timetableId: ID!
 }
 
 input NewClass {
@@ -735,7 +733,7 @@ type Mutation {
     refreshToken: String!  # return token  headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
-    updateTimetable(input: UpdateTimetable!): Timetable!  # idと更新データしか正しい値が返ってこない。
+    updateTimetable(input: UpdateTimetable!): Timetable!
     deleteTimetable(input: ID!): Boolean!
 
     createClass(input: NewClass!): Class!
@@ -765,7 +763,7 @@ type Timetable {
     name: String!
     days: Int!           # 平日、平日＋土、毎日
     periods: Int!        # 時限数
-    createdAt: String!   # todo datetime型はどうすればいいのか？
+    createdAt: String!   # todo datetime型
     updatedAt: String!
     isDefault: Boolean!
     classes: [Class]
@@ -776,8 +774,8 @@ type Timetable {
 type ClassTime {
     id: ID!
     period: Int!        # 時限
-    startTime: String   # todo time型 ex) 9:00
-    endTime: String
+    startTime: String!  # todo time型 ex) 16:00
+    endTime: String!
 }
 
 type Class {
@@ -1550,11 +1548,14 @@ func (ec *executionContext) _ClassTime_startTime(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClassTime_endTime(ctx context.Context, field graphql.CollectedField, obj *model.ClassTime) (ret graphql.Marshaler) {
@@ -1582,11 +1583,14 @@ func (ec *executionContext) _ClassTime_endTime(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_signup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4175,7 +4179,7 @@ func (ec *executionContext) unmarshalInputNewClassTime(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startTime"))
-			it.StartTime, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.StartTime, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4183,7 +4187,7 @@ func (ec *executionContext) unmarshalInputNewClassTime(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
-			it.EndTime, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.EndTime, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4391,14 +4395,6 @@ func (ec *executionContext) unmarshalInputUpdateClassTime(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "period":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
-			it.Period, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "startTime":
 			var err error
 
@@ -4412,14 +4408,6 @@ func (ec *executionContext) unmarshalInputUpdateClassTime(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endTime"))
 			it.EndTime, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "timetableId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timetableId"))
-			it.TimetableID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4682,8 +4670,14 @@ func (ec *executionContext) _ClassTime(ctx context.Context, sel ast.SelectionSet
 			}
 		case "startTime":
 			out.Values[i] = ec._ClassTime_startTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "endTime":
 			out.Values[i] = ec._ClassTime_endTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

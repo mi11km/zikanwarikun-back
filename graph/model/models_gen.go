@@ -21,10 +21,10 @@ type Class struct {
 }
 
 type ClassTime struct {
-	ID        string  `json:"id"`
-	Period    int     `json:"period"`
-	StartTime *string `json:"startTime"`
-	EndTime   *string `json:"endTime"`
+	ID        string `json:"id"`
+	Period    int    `json:"period"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
 }
 
 type DeleteUser struct {
@@ -47,10 +47,10 @@ type NewClass struct {
 }
 
 type NewClassTime struct {
-	Period      int     `json:"period"`
-	StartTime   *string `json:"startTime"`
-	EndTime     *string `json:"endTime"`
-	TimetableID string  `json:"timetableId"`
+	Period      int    `json:"period"`
+	StartTime   string `json:"startTime"`
+	EndTime     string `json:"endTime"`
+	TimetableID string `json:"timetableId"`
 }
 
 type NewTimetable struct {
@@ -102,11 +102,9 @@ type UpdateClass struct {
 }
 
 type UpdateClassTime struct {
-	ID          string  `json:"id"`
-	Period      int     `json:"period"`
-	StartTime   *string `json:"startTime"`
-	EndTime     *string `json:"endTime"`
-	TimetableID string  `json:"timetableId"`
+	ID        string  `json:"id"`
+	StartTime *string `json:"startTime"`
+	EndTime   *string `json:"endTime"`
 }
 
 type UpdateTimetable struct {

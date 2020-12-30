@@ -12,8 +12,7 @@ func ToGraphQLUser(dbUser *models.User) *model.User {
 		Name:   dbUser.Name,
 		School: dbUser.School,
 	}
-	graphTimetables := ToGraphQLTimetables(dbUser.Timetables)
-	if len(graphTimetables) != 0 {
+	if graphTimetables := ToGraphQLTimetables(dbUser.Timetables); graphTimetables != nil {
 		graphUser.Timetables = graphTimetables
 	}
 	return graphUser

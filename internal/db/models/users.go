@@ -28,20 +28,17 @@ type User struct {
 func (user *User) Create(input model.NewUser) error {
 	hashedPassword, err := password.HashPassword(input.Password)
 	if err != nil {
-		log.Printf("action=create user, status=failed, err=%s", err)
+		log.Printf("action=create user data, status=failed, err=%s", err)
 		return err
 	}
-
 	user.ID = uuid.New().String()
 	user.Email = input.Email
 	user.Password = hashedPassword
 	user.School = input.School
 	user.Name = input.Name
-
-	result := database.Db.Create(user)
-	if result.Error != nil {
-		log.Printf("action=create user, status=failed, err=%s", result.Error)
-		return result.Error
+	if err := database.Db.Create(user).Error; err != nil {
+		log.Printf("action=create user data, status=failed, err=%s", err)
+		return err
 	}
 	return nil
 }
@@ -58,8 +55,7 @@ func (user *User) Update(input *model.UpdateUser) error {
 		updateData["name"] = *input.Name
 	}
 	if input.Password != nil {
-		correct := password.CheckPasswordHash(input.Password.Current, user.Password)
-		if !correct {
+		if correct := password.CheckPasswordHash(input.Password.Current, user.Password); !correct {
 			log.Printf("action=update login user data, status=failed, err=currentPassword is wrong")
 			return fmt.Errorf("failed to update password. currentPassword is wrong")
 		}
@@ -75,39 +71,33 @@ func (user *User) Update(input *model.UpdateUser) error {
 		return fmt.Errorf("update data must be set")
 	}
 
-	result := database.Db.Model(user).Updates(updateData)
-	if result.Error != nil {
-		log.Printf("action=update login user data, status=failed, err=%s", result.Error)
-		return result.Error
+	if err := database.Db.Model(user).Updates(updateData).Error; err != nil {
+		log.Printf("action=update login user data, status=failed, err=%s", err)
+		return err
 	}
 	return nil
 }
 
 func (user *User) Delete(input model.DeleteUser) (bool, error) {
-	correct := password.CheckPasswordHash(input.Password, user.Password)
-	if !correct {
-		log.Printf("action=delete user, status=failed, err=password is wrong")
+	if correct := password.CheckPasswordHash(input.Password, user.Password); !correct {
+		log.Printf("action=delete login user data, status=failed, err=password is wrong")
 		return false, fmt.Errorf("failed to delte user. password is wrong")
 	}
 
-	result := database.Db.Select(clause.Associations).Delete(user) // todo 関連レコードも一括削除する。できてるか確認できていない
-	if result.Error != nil {
-		log.Printf("action=delete user, status=failed, err=%s", result.Error)
-		return false, result.Error
+	if err := database.Db.Select(clause.Associations).Delete(user).Error; err != nil { // todo? 現在中間テーブルとUserしか削除されない
+		log.Printf("action=delete login user data, status=failed, err=%s", err)
+		return false, err
 	}
-	log.Printf("action=delete login user, status=success")
+	log.Printf("action=delete login user data, status=success")
 	return true, nil
 }
 
 func (user *User) Login(input model.Login) error {
-	result := database.Db.Where("email = ?", input.Email).First(user)
-	if result.Error != nil {
-		log.Printf("action=login, status=failed, err=%s", result.Error)
-		return result.Error
+	if err := database.Db.Where("email = ?", input.Email).First(user).Error; err != nil {
+		log.Printf("action=login, status=failed, err=%s", err)
+		return err
 	}
-
-	correct := password.CheckPasswordHash(input.Password, user.Password)
-	if !correct {
+	if correct := password.CheckPasswordHash(input.Password, user.Password); !correct {
 		log.Printf("action=login, status=failed, err=email or password is wrong")
 		return fmt.Errorf("failed to login. email or password is wrong")
 	}

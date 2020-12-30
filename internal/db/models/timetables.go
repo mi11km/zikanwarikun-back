@@ -22,26 +22,22 @@ type Timetable struct {
 	Classes      []*Class
 }
 
-const Association = "Timetables"
+const timetablesAssociation = "Timetables"
 
 /* Create 時間割を新しくDBに作成してis_default=trueとなる時間割を新しいやつ１つにする */
 func (t *Timetable) Create(input model.NewTimetable, user User) error {
-	err := ChangeIsDefaultToFalse(user)
-	if err != nil {
+	if err := ChangeIsDefaultToFalse(user); err != nil {
 		log.Printf("action=create timetable data, status=failed, err=%s", err)
 		return err
 	}
-
 	t.Name = input.Name
 	t.ClassDays = input.Days
 	t.ClassPeriods = input.Periods
 	t.IsDefault = true
-
-	if err := database.Db.Model(&user).Association(Association).Append(t); err != nil {
+	if err := database.Db.Model(&user).Association(timetablesAssociation).Append(t); err != nil {
 		log.Printf("action=create timetable data, status=failed, err=%s", err)
 		return err
 	}
-
 	log.Printf("action=create timetable data, status=success")
 	return nil
 }
@@ -60,8 +56,7 @@ func (t *Timetable) Update(input model.UpdateTimetable, user User) error {
 	if input.IsDefault != nil {
 		updateData["is_default"] = *input.IsDefault
 		if *input.IsDefault {
-			err := ChangeIsDefaultToFalse(user)
-			if err != nil {
+			if err := ChangeIsDefaultToFalse(user); err != nil {
 				log.Printf("action=update timetable data, status=failed, err=%s", err)
 				return err
 			}
@@ -76,7 +71,6 @@ func (t *Timetable) Update(input model.UpdateTimetable, user User) error {
 		log.Printf("action=update timetable data, status=failed, err=%s", err)
 		return err
 	}
-
 	log.Printf("action=update timetable data, status=success")
 	return nil
 }
@@ -89,12 +83,10 @@ func (t *Timetable) Delete(input string) (bool, error) {
 	}
 	t.ID = uint(id)
 
-	if err := database.Db.
-		Select("ClassTime", "Class", clause.Associations).Delete(t).Error; err != nil {
+	if err := database.Db.Select("ClassTime", "Class", clause.Associations).Delete(t).Error; err != nil {
 		log.Printf("action=delete timetable data, status=failed, err=%s", err)
 		return false, err
 	}
-
 	log.Printf("action=delete timetable data, status=success")
 	return true, nil
 }
@@ -107,7 +99,10 @@ func FetchTimetableById(id string) *Timetable {
 	}
 	timetable := &Timetable{}
 	timetable.ID = uint(i)
-	database.Db.First(timetable)
+	if err := database.Db.First(timetable).Error; err != nil {
+		log.Printf("action=fetch timetable by id, status=failed, err=%s", err)
+		return nil
+	}
 	return timetable
 }
 
@@ -115,7 +110,7 @@ func FetchTimetableById(id string) *Timetable {
 func FetchDefaultTimetableByUser(user User) (*Timetable, error) {
 	var defaultTimetable Timetable
 	if err := database.Db.Model(&user).Where("is_default = ?", true).
-		Association(Association).Find(&defaultTimetable); err != nil {
+		Association(timetablesAssociation).Find(&defaultTimetable); err != nil {
 		return nil, err
 	}
 	return &defaultTimetable, nil
@@ -124,7 +119,7 @@ func FetchDefaultTimetableByUser(user User) (*Timetable, error) {
 /* FetchTimetablesByUser userの時間割データを全て取得する */
 func FetchTimetablesByUser(user User) ([]*Timetable, error) {
 	var timetables []*Timetable
-	if err := database.Db.Model(&user).Association(Association).Find(&timetables); err != nil {
+	if err := database.Db.Model(&user).Association(timetablesAssociation).Find(&timetables); err != nil {
 		return nil, err
 	}
 	return timetables, nil

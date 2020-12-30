@@ -27,12 +27,10 @@ func (ct *ClassTime) Create(input model.NewClassTime) error {
 		log.Printf("action=create class_time data, status=failed, err=%s", err)
 		return err
 	}
-
 	ct.Periods = input.Period
 	ct.StartTime = input.StartTime
 	ct.EndTime = input.EndTime
 	ct.TimetableID = uint(id)
-
 	if err := database.Db.Create(ct).Error; err != nil {
 		log.Printf("action=create class_time data, status=failed, err=%s", err)
 		return err

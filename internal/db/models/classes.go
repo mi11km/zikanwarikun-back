@@ -34,12 +34,10 @@ func (class *Class) Create(input model.NewClass) error {
 		log.Printf("action=create class data, status=failed, err=%s", err)
 		return err
 	}
-
 	class.Name = input.Name
 	class.Days = input.Day
 	class.Periods = input.Period
 	class.TimetableID = uint(timetableId)
-
 	if input.Style != nil {
 		class.Style = *input.Style
 	}
@@ -53,8 +51,7 @@ func (class *Class) Create(input model.NewClass) error {
 		log.Printf("action=create class data, status=failed, err=%s", err)
 		return err
 	}
-
-	log.Printf("action=create class, status=success")
+	log.Printf("action=create class data, status=success")
 	return nil
 }
 
@@ -102,8 +99,7 @@ func (class *Class) Delete(input string) (bool, error) {
 	}
 	class.ID = uint(id)
 
-	// todo 関連レコードも削除できてるか？
-	if err := database.Db.Select("Todo", "Attendance", "Url").Delete(class).Error; err != nil {
+	if err := database.Db.Select("Todo", "Attendance", "Url").Delete(class).Error; err != nil {  // todo 関連レコードも削除できてるか確認
 		log.Printf("action=delete class data, status=failed, err=%s", err)
 		return false, err
 	}

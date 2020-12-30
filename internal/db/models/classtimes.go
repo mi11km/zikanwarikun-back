@@ -84,3 +84,15 @@ func FetchClassTimesByTimetable(timetable Timetable) ([]*ClassTime, error) {
 	}
 	return classTimes, nil
 }
+
+func SetClassTimesToEachTimetable(timetables []*Timetable) {
+	if len(timetables) == 0 {
+		return
+	}
+	for _, t := range timetables {
+		classTimes, err := FetchClassTimesByTimetable(*t)
+		if err == nil {
+			t.ClassTimes = classTimes
+		}
+	}
+}

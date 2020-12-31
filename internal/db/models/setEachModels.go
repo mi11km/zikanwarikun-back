@@ -1,8 +1,13 @@
 package models
 
+import "sort"
+
 func SetTodosToClass(class *Class) {
 	todos, err := FetchTodosByClass(*class)
 	if err == nil {
+		sort.Slice(todos, func(i, j int) bool {
+			return todos[i].Deadline.Before(todos[j].Deadline)
+		})
 		class.Todos = todos
 	}
 }

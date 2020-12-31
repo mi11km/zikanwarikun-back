@@ -19,3 +19,15 @@ func ToGraphQlTodo(dbTodo *models.Todo) *model.Todo {
 	}
 	return graphTodo
 }
+
+func ToGraphQLTodos(dbTodos []*models.Todo) []*model.Todo {
+	if len(dbTodos) == 0 {
+		return nil
+	}
+	var graphTodos []*model.Todo
+	for _, dt := range dbTodos {
+		gt := ToGraphQlTodo(dt)
+		graphTodos = append(graphTodos, gt)
+	}
+	return graphTodos
+}

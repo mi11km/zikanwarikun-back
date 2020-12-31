@@ -130,15 +130,3 @@ func FetchClassesByTimetable(timetable Timetable) ([]*Class, error) {
 	}
 	return classes, nil
 }
-
-func SetClassesToEachTimetable(timetables []*Timetable) {
-	if len(timetables) == 0 {
-		return
-	}
-	for _, t := range timetables {
-		classes, err := FetchClassesByTimetable(*t)
-		if err == nil {
-			t.Classes = classes
-		}
-	}
-}

@@ -15,3 +15,15 @@ func ToGraphQlUrl(dbUrl *models.Url) *model.URL {
 	}
 	return graphUrl
 }
+
+func ToGraphQLUrls(dbUrls []*models.Url) []*model.URL {
+	if len(dbUrls) == 0 {
+		return nil
+	}
+	var graphUrls []*model.URL
+	for _, dt := range dbUrls {
+		gt := ToGraphQlUrl(dt)
+		graphUrls = append(graphUrls, gt)
+	}
+	return graphUrls
+}

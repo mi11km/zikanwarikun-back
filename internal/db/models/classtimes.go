@@ -38,6 +38,7 @@ func (ct *ClassTime) Create(input model.NewClassTime) error {
 	log.Printf("action=create class_time data, status=success")
 	return nil
 }
+
 func (ct *ClassTime) Update(input model.UpdateClassTime) error {
 	updateData := make(map[string]interface{})
 	if input.StartTime != nil && *input.StartTime != ct.StartTime {
@@ -81,16 +82,4 @@ func FetchClassTimesByTimetable(timetable Timetable) ([]*ClassTime, error) {
 		return nil, err
 	}
 	return classTimes, nil
-}
-
-func SetClassTimesToEachTimetable(timetables []*Timetable) {
-	if len(timetables) == 0 {
-		return
-	}
-	for _, t := range timetables {
-		classTimes, err := FetchClassTimesByTimetable(*t)
-		if err == nil {
-			t.ClassTimes = classTimes
-		}
-	}
 }

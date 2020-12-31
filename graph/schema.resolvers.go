@@ -300,14 +300,13 @@ func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 		log.Printf("action=get login user data, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	timetables, err := models.FetchTimetablesByUser(*auth.User)
+	dbTimetables, err := models.FetchTimetablesByUser(*auth.User)
 	if err != nil {
 		log.Printf("action=get login user data, status=failed, err=%s", err)
 		return nil, err
 	}
-	models.SetClassTimesToEachTimetable(timetables)
-	models.SetClassesToEachTimetable(timetables)
-	auth.User.Timetables = timetables
+	models.SetClassesAndClassTimesToEachTimetables(dbTimetables)
+	auth.User.Timetables = dbTimetables
 	graphUser := convert.ToGraphQLUser(auth.User)
 	log.Printf("action=get login user data, status=success")
 	return graphUser, nil
@@ -325,7 +324,8 @@ func (r *queryResolver) Timetable(ctx context.Context) (*model.Timetable, error)
 		log.Printf("action=get default timetable of login user, status=failed, err=%s", err)
 		return nil, err
 	}
-	// todo classやclass_timeをセットしてない　というかそもそもこのAPIつかう？
+	models.SetClassTimesToTimetable(dbDefaultTimetable)
+	models.SetClassesToTimetable(dbDefaultTimetable)
 	return convert.ToGraphQLTimetable(dbDefaultTimetable), nil
 }
 
@@ -341,8 +341,7 @@ func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, err
 		log.Printf("action=get all timetables of login user, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	models.SetClassTimesToEachTimetable(dbTimetables)
-	models.SetClassesToEachTimetable(dbTimetables)
+	models.SetClassesAndClassTimesToEachTimetables(dbTimetables)
 	graphTimetables := convert.ToGraphQLTimetables(dbTimetables)
 	return graphTimetables, nil
 }

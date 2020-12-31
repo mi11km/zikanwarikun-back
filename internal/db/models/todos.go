@@ -124,3 +124,25 @@ func FetchTodosByClass(class Class) ([]*Todo, error) {
 	return todos, nil
 }
 
+/* GetTodosFromTimetableId 時間割のidからその時間割のtodo一覧を取得する */
+func GetTodosFromTimetableId(timetableId string) ([]*Todo, error) {
+	var allTodos []*Todo
+	id, err := strconv.Atoi(timetableId)
+	if err != nil {
+		log.Printf("action=get todos from timetable id, status=failed, err=%s", err)
+		return nil, err
+	}
+	timetable := &Timetable{}
+	timetable.ID = uint(id)
+	classes, err := FetchClassesByTimetable(*timetable)
+	for _, class := range classes {
+		todos, err := FetchTodosByClass(*class)
+		if err != nil {
+			log.Printf("action=get todos from timetable id, status=failed, err=%s", err)
+			return nil, err
+		}
+		allTodos = append(allTodos, todos...)
+	}
+	// todo 締め切り近い順でsort + is_done=falseのみを返す？
+	return allTodos, nil
+}

@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
@@ -124,7 +125,7 @@ func FetchTodosByClass(class Class) ([]*Todo, error) {
 	return todos, nil
 }
 
-/* GetTodosFromTimetableId 時間割のidからその時間割のtodo一覧を取得する */
+/* GetTodosFromTimetableId 時間割のidからその時間割のtodo一覧を取得する(deadlineが早い順) */
 func GetTodosFromTimetableId(timetableId string) ([]*Todo, error) {
 	var allTodos []*Todo
 	id, err := strconv.Atoi(timetableId)
@@ -143,6 +144,9 @@ func GetTodosFromTimetableId(timetableId string) ([]*Todo, error) {
 		}
 		allTodos = append(allTodos, todos...)
 	}
-	// todo 締め切り近い順でsort + is_done=falseのみを返す？
+
+	sort.Slice(allTodos, func(i, j int) bool {
+		return allTodos[i].Deadline.Before(allTodos[j].Deadline)
+	})
 	return allTodos, nil
 }

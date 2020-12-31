@@ -2,6 +2,7 @@ type Query {
     user: User!                # tokenからログインユーザー情報収録
     timetable: Timetable!      # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
     timetables: [Timetable!]!  # ログインユーザーの時間割の一覧取得
+    todos: [Todo]              # ログインユーザーのtodo一覧取得(is_done=falseでdeadlineが近い順) kind別に取得できてもいいかも
 }
 
 type Mutation {
@@ -9,7 +10,7 @@ type Mutation {
     updateLoginUser(input: UpdateUser!): Auth!
     deleteLoginUser(input: DeleteUser!): Boolean!
     login(input: Login!): Auth!
-    refreshToken: String!  # return token  headerについてるトークンから更新する
+    refreshToken: String!  # return token, headerについてるトークンから更新する
 
     createTimetable(input: NewTimetable!): Timetable!
     updateTimetable(input: UpdateTimetable!): Timetable!
@@ -21,6 +22,14 @@ type Mutation {
 
     createClassTime(input: NewClassTime!): ClassTime!
     updateClassTime(input: UpdateClassTime!): ClassTime!
+
+    createTodo(input: NewTodo!): Todo!
+    updateTodo(input: UpdateTodo!): Todo!
+    deleteTodo(input: ID!): Boolean!
+
+    createUrl(input: NewUrl!): Url!
+    updateUrl(input: UpdateUrl!): Url!
+    deleteUrl(input: ID!): Boolean!
 }
 
 #　todo delete処理後の返り値を何にするべきか

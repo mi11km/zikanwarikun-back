@@ -51,3 +51,17 @@ type TimetableRowData {
     endTime: String!
 }
 
+type Todo {
+    id: ID!
+    kind: String!
+    deadline: String!  # "2020-06-01 01:32" という形式で！
+    isDone: Boolean!
+    memo: String
+    isRepeated: Boolean!
+}
+
+type Url {
+    id: ID!
+    name: String!
+    url: String!
+}

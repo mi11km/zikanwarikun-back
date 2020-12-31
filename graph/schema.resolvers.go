@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
@@ -346,15 +345,19 @@ func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, err
 	return graphTimetables, nil
 }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
+func (r *queryResolver) Todos(ctx context.Context, input string) ([]*model.Todo, error) {
 	auth := auth.GetAuthInfoFromCtx(ctx)
 	if auth == nil {
 		err := &myerrors.UnauthenticatedUserAccessError{}
-		log.Printf("action=get login user todo data, status=failed, err=%s", err.Error())
+		log.Printf("action=get all todo data from given timetable_id, status=failed, err=%s", err.Error())
 		return nil, err
 	}
-	// todo
-	panic(fmt.Errorf("not implemented"))
+	dbTodos, err := models.GetTodosFromTimetableId(input)
+	if err != nil {
+		log.Printf("action=get all todo data from given timetable_id, status=failed, err=%s", err)
+		return nil, err
+	}
+	return convert.ToGraphQLTodos(dbTodos), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

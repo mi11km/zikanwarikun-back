@@ -95,7 +95,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Timetable  func(childComplexity int) int
 		Timetables func(childComplexity int) int
-		Todos      func(childComplexity int) int
+		Todos      func(childComplexity int, input string) int
 		User       func(childComplexity int) int
 	}
 
@@ -168,7 +168,7 @@ type QueryResolver interface {
 	User(ctx context.Context) (*model.User, error)
 	Timetable(ctx context.Context) (*model.Timetable, error)
 	Timetables(ctx context.Context) ([]*model.Timetable, error)
-	Todos(ctx context.Context) ([]*model.Todo, error)
+	Todos(ctx context.Context, input string) ([]*model.Todo, error)
 }
 
 type executableSchema struct {
@@ -554,7 +554,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Todos(childComplexity), true
+		args, err := ec.field_Query_todos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Todos(childComplexity, args["input"].(string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -937,7 +942,7 @@ input UpdateUrl {
     user: User!                # tokenからログインユーザー情報収録
     timetable: Timetable!      # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
     timetables: [Timetable!]!  # ログインユーザーの時間割の一覧取得
-    todos: [Todo]              # ログインユーザーのtodo一覧取得(is_done=falseでdeadlineが近い順) kind別に取得できてもいいかも
+    todos(input: ID!): [Todo]  # ログインユーザーのデフォルトの時間割のtodo一覧取得(is_done=falseでdeadlineが近い順) kind別に取得できてもいいかも
 }
 
 type Mutation {
@@ -1326,6 +1331,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_todos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2897,9 +2917,16 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_todos_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Todos(rctx)
+		return ec.resolvers.Query().Todos(rctx, args["input"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

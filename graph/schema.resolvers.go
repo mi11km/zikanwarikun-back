@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/mi11km/zikanwarikun-back/graph/generated"
@@ -210,6 +211,88 @@ func (r *mutationResolver) UpdateClassTime(ctx context.Context, input model.Upda
 	return convert.ToGraphQLClassTime(dbClassTime), nil
 }
 
+func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=create todo, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	dbTodo := &models.Todo{}
+	if err := dbTodo.Create(input); err != nil {
+		log.Printf("action=create todo, status=failed, err=%s", err)
+		return nil, err
+	}
+	return convert.ToGraphQlTodo(dbTodo), nil
+}
+
+func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodo) (*model.Todo, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=update todo, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	dbTodo := models.FetchTodoById(input.ID)
+	if err := dbTodo.Update(input); err != nil {
+		log.Printf("action=update todo, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return convert.ToGraphQlTodo(dbTodo), nil
+}
+
+func (r *mutationResolver) DeleteTodo(ctx context.Context, input string) (bool, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=delete todo, status=failed, err=%s", err.Error())
+		return false, err
+	}
+	dbTodo := &models.Todo{}
+	return dbTodo.Delete(input)
+}
+
+func (r *mutationResolver) CreateURL(ctx context.Context, input model.NewURL) (*model.URL, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=create url, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	dbUrl := &models.Url{}
+	if err := dbUrl.Create(input); err != nil {
+		log.Printf("action=create url, status=failed, err=%s", err)
+		return nil, err
+	}
+	return convert.ToGraphQlUrl(dbUrl), nil
+}
+
+func (r *mutationResolver) UpdateURL(ctx context.Context, input model.UpdateURL) (*model.URL, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=update url, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	dbUrl := models.FetchUrlById(input.ID)
+	if err := dbUrl.Update(input); err != nil {
+		log.Printf("action=update url, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	return convert.ToGraphQlUrl(dbUrl), nil
+}
+
+func (r *mutationResolver) DeleteURL(ctx context.Context, input string) (bool, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=delete url, status=failed, err=%s", err.Error())
+		return false, err
+	}
+	dbUrl := &models.Url{}
+	return dbUrl.Delete(input)
+}
+
 func (r *queryResolver) User(ctx context.Context) (*model.User, error) {
 	auth := auth.GetAuthInfoFromCtx(ctx)
 	if auth == nil {
@@ -262,6 +345,17 @@ func (r *queryResolver) Timetables(ctx context.Context) ([]*model.Timetable, err
 	models.SetClassesToEachTimetable(dbTimetables)
 	graphTimetables := convert.ToGraphQLTimetables(dbTimetables)
 	return graphTimetables, nil
+}
+
+func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
+	auth := auth.GetAuthInfoFromCtx(ctx)
+	if auth == nil {
+		err := &myerrors.UnauthenticatedUserAccessError{}
+		log.Printf("action=get login user todo data, status=failed, err=%s", err.Error())
+		return nil, err
+	}
+	// todo
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

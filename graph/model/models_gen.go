@@ -59,6 +59,19 @@ type NewTimetable struct {
 	Periods int    `json:"periods"`
 }
 
+type NewTodo struct {
+	Kind       string `json:"kind"`
+	Deadline   string `json:"deadline"`
+	IsRepeated bool   `json:"isRepeated"`
+	ClassID    string `json:"classId"`
+}
+
+type NewURL struct {
+	Name    string `json:"name"`
+	URL     string `json:"url"`
+	ClassID string `json:"classId"`
+}
+
 type NewUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -90,6 +103,15 @@ type TimetableRowData struct {
 	EndTime   string   `json:"endTime"`
 }
 
+type Todo struct {
+	ID         string  `json:"id"`
+	Kind       string  `json:"kind"`
+	Deadline   string  `json:"deadline"`
+	IsDone     bool    `json:"isDone"`
+	Memo       *string `json:"memo"`
+	IsRepeated bool    `json:"isRepeated"`
+}
+
 type UpdateClass struct {
 	ID        string  `json:"id"`
 	Name      *string `json:"name"`
@@ -115,11 +137,32 @@ type UpdateTimetable struct {
 	IsDefault *bool   `json:"isDefault"`
 }
 
+type UpdateTodo struct {
+	ID         string  `json:"id"`
+	Kind       *string `json:"kind"`
+	Deadline   *string `json:"deadline"`
+	IsDone     *bool   `json:"isDone"`
+	Memo       *string `json:"memo"`
+	IsRepeated *bool   `json:"isRepeated"`
+}
+
+type UpdateURL struct {
+	ID   string  `json:"id"`
+	Name *string `json:"name"`
+	URL  *string `json:"url"`
+}
+
 type UpdateUser struct {
 	Email    *string         `json:"email"`
 	School   *string         `json:"school"`
 	Name     *string         `json:"name"`
 	Password *UpdatePassword `json:"password"`
+}
+
+type URL struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 type User struct {

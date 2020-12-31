@@ -78,5 +78,32 @@ input UpdateClass {
     roomOrUrl: String
 }
 
+input NewTodo {
+    kind: String!
+    deadline: String!
+    isRepeated: Boolean!
+    classId: ID!
+}
+
+input UpdateTodo {
+    id: ID!
+    kind: String
+    deadline: String
+    isDone: Boolean
+    memo: String
+    isRepeated: Boolean
+}
+
+input NewUrl {
+    name: String!
+    url: String!
+    classId: ID!
+}
+
+input UpdateUrl {
+    id: ID!
+    name: String
+    url: String
+}
 
 

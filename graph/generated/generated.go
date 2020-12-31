@@ -942,7 +942,7 @@ input UpdateUrl {
     user: User!                # tokenからログインユーザー情報収録
     timetable: Timetable!      # ログインユーザーのデフォルトの時間割取得(クラスと時間とその詳細も全部取得)
     timetables: [Timetable!]!  # ログインユーザーの時間割の一覧取得
-    todos(input: ID!): [Todo]  # ログインユーザーのデフォルトの時間割のtodo一覧取得(is_done=falseでdeadlineが近い順) kind別に取得できてもいいかも
+    todos(input: ID!): [Todo]  # ログインユーザーのデフォルトの時間割のtodo一覧取得(deadlineが近い順) kind別に取得できてもいいかも
 }
 
 type Mutation {

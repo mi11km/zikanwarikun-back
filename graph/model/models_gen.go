@@ -18,6 +18,8 @@ type Class struct {
 	Credit    *int    `json:"credit"`
 	Memo      *string `json:"memo"`
 	RoomOrURL string  `json:"roomOrUrl"`
+	Todos     []*Todo `json:"todos"`
+	Urls      []*URL  `json:"urls"`
 }
 
 type ClassTime struct {

@@ -42,6 +42,8 @@ type Class {
     credit: Int       # 単位数
     memo: String
     roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
+    todos: [Todo]
+    urls: [Url]
 }
 
 type TimetableRowData {

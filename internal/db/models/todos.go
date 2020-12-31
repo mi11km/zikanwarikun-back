@@ -114,3 +114,13 @@ func FetchTodoById(id string) *Todo {
 	}
 	return todo
 }
+
+/* FetchTodosByClass 指定した科目のTodoデータを全て取得する */
+func FetchTodosByClass(class Class) ([]*Todo, error) {
+	var todos []*Todo
+	if err := database.Db.Where("class_id = ?", class.ID).Find(&todos).Error; err != nil {
+		return nil, err
+	}
+	return todos, nil
+}
+

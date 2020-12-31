@@ -84,3 +84,12 @@ func FetchUrlById(id string) *Url {
 	}
 	return url
 }
+
+/* FetchUrlsByClass 指定した科目のUrlデータを全て取得する */
+func FetchUrlsByClass(class Class) ([]*Url, error) {
+	var urls []*Url
+	if err := database.Db.Where("class_id = ?", class.ID).Find(&urls).Error; err != nil {
+		return nil, err
+	}
+	return urls, nil
+}

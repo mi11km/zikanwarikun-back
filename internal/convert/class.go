@@ -20,6 +20,12 @@ func ToGraphQLClass(dbClass *models.Class) *model.Class {
 		Memo:      dbClass.Memo,
 		Color:     dbClass.Color,
 	}
+	if graphTodos := ToGraphQLTodos(dbClass.Todos); graphTodos != nil {
+		graphClass.Todos = graphTodos
+	}
+	if graphUrls := ToGraphQLUrls(dbClass.Urls); graphUrls != nil {
+		graphClass.Urls = graphUrls
+	}
 	return graphClass
 }
 

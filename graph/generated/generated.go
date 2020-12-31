@@ -59,6 +59,8 @@ type ComplexityRoot struct {
 		RoomOrURL func(childComplexity int) int
 		Style     func(childComplexity int) int
 		Teacher   func(childComplexity int) int
+		Todos     func(childComplexity int) int
+		Urls      func(childComplexity int) int
 	}
 
 	ClassTime struct {
@@ -267,6 +269,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Class.Teacher(childComplexity), true
+
+	case "Class.todos":
+		if e.complexity.Class.Todos == nil {
+			break
+		}
+
+		return e.complexity.Class.Todos(childComplexity), true
+
+	case "Class.urls":
+		if e.complexity.Class.Urls == nil {
+			break
+		}
+
+		return e.complexity.Class.Urls(childComplexity), true
 
 	case "ClassTime.endTime":
 		if e.complexity.ClassTime.EndTime == nil {
@@ -996,6 +1012,8 @@ type Class {
     credit: Int       # 単位数
     memo: String
     roomOrUrl: String!  # zoomのurlかオンデマンドのurlか教室名
+    todos: [Todo]
+    urls: [Url]
 }
 
 type TimetableRowData {
@@ -1008,7 +1026,7 @@ type TimetableRowData {
 type Todo {
     id: ID!
     kind: String!
-    deadline: String!
+    deadline: String!  # "2020-06-01 01:32" という形式で！
     isDone: Boolean!
     memo: String
     isRepeated: Boolean!
@@ -1761,6 +1779,70 @@ func (ec *executionContext) _Class_roomOrUrl(ctx context.Context, field graphql.
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Class_todos(ctx context.Context, field graphql.CollectedField, obj *model.Class) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Class",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Todos, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Todo)
+	fc.Result = res
+	return ec.marshalOTodo2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Class_urls(ctx context.Context, field graphql.CollectedField, obj *model.Class) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Class",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Urls, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.URL)
+	fc.Result = res
+	return ec.marshalOUrl2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐURL(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ClassTime_id(ctx context.Context, field graphql.CollectedField, obj *model.ClassTime) (ret graphql.Marshaler) {
@@ -5718,6 +5800,10 @@ func (ec *executionContext) _Class(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "todos":
+			out.Values[i] = ec._Class_todos(ctx, field, obj)
+		case "urls":
+			out.Values[i] = ec._Class_urls(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7242,6 +7328,53 @@ func (ec *executionContext) marshalOTodo2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikun
 		return graphql.Null
 	}
 	return ec._Todo(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUrl2ᚕᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐURL(ctx context.Context, sel ast.SelectionSet, v []*model.URL) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUrl2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐURL(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOUrl2ᚖgithubᚗcomᚋmi11kmᚋzikanwarikunᚑbackᚋgraphᚋmodelᚐURL(ctx context.Context, sel ast.SelectionSet, v *model.URL) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Url(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
